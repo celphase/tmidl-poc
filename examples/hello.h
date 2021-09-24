@@ -7,4 +7,4 @@ typedef struct hello_i
     hello_o* (*create)();
 
     void (*destroy)(hello_o *inst);
-};
+} hello_i;

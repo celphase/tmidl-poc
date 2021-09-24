@@ -8,10 +8,8 @@ project(TMIDL
 
 add_library(tmidl STATIC
     headers/tmidl.h
-    src/auxil.c
-    src/auxil.h
-    src/generated.c
-    src/generated.h
+    src/mpc.c
+    src/mpc.h
     src/tmidl.c
 )
 target_include_directories(tmidl PUBLIC headers)
