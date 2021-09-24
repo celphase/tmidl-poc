@@ -1,12 +1,13 @@
 #pragma once
 
+#include <tmidl.h>
 #include <stdbool.h>
 
 typedef struct {
     bool success;
+    const tmidl_callbacks_i *callbacks;
+    void *context;
 } pcc_auxil_o;
-
-pcc_auxil_o auxil_create();
 
 int auxil_getchar(pcc_auxil_o *auxil);
 

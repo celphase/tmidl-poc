@@ -6,8 +6,11 @@
 extern "C" {
 #endif
 
-bool parse_tmidl();
+typedef struct {
+    int (*next_codepoint)(void *context);
+} tmidl_callbacks_i;
 
+bool parse_tmidl(const tmidl_callbacks_i *callbacks, void *context);
 
 #ifdef __cplusplus
 }

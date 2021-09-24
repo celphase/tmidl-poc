@@ -948,20 +948,6 @@ static void pcc_do_action(pcc_context_t *ctx, const pcc_thunk_array_t *thunks, p
     }
 }
 
-static void pcc_action_tmidl_0(pcc_context_t *__pcc_ctx, pcc_thunk_t *__pcc_in, pcc_value_t *__pcc_out) {
-#define auxil (__pcc_ctx->auxil)
-#define __ (*__pcc_out)
-#define _0 pcc_get_capture_string(__pcc_ctx, &__pcc_in->data.leaf.capt0)
-#define _0s ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.start))
-#define _0e ((const size_t)(__pcc_ctx->pos + __pcc_in->data.leaf.capt0.range.end))
-    printf("Failed to parse TMIDL\n");
-#undef _0e
-#undef _0s
-#undef _0
-#undef __
-#undef auxil
-}
-
 static pcc_thunk_chunk_t *pcc_evaluate_rule_tmidl(pcc_context_t *ctx);
 
 static pcc_thunk_chunk_t *pcc_evaluate_rule_tmidl(pcc_context_t *ctx) {
@@ -971,28 +957,13 @@ static pcc_thunk_chunk_t *pcc_evaluate_rule_tmidl(pcc_context_t *ctx) {
     ctx->level++;
     pcc_value_table__resize(ctx->auxil, &chunk->values, 0);
     pcc_capture_table__resize(ctx->auxil, &chunk->capts, 0);
-    {
-        if (
-            pcc_refill_buffer(ctx, 3) < 3 ||
-            (ctx->buffer.buf + ctx->cur)[0] != 'f' ||
-            (ctx->buffer.buf + ctx->cur)[1] != 'o' ||
-            (ctx->buffer.buf + ctx->cur)[2] != 'o'
-        ) goto L0001;
-        ctx->cur += 3;
-        goto L0002;
-    L0001:;
-        {
-            pcc_value_t null;
-            pcc_thunk_t *const thunk = pcc_thunk__create_leaf(ctx->auxil, pcc_action_tmidl_0, 0, 0);
-            thunk->data.leaf.capt0.range.start = chunk->pos;
-            thunk->data.leaf.capt0.range.end = ctx->cur;
-            memset(&null, 0, sizeof(pcc_value_t)); /* in case */
-            thunk->data.leaf.action(ctx, thunk, &null);
-            pcc_thunk__destroy(ctx->auxil, thunk);
-        }
-        goto L0000;
-    L0002:;
-    }
+    if (
+        pcc_refill_buffer(ctx, 3) < 3 ||
+        (ctx->buffer.buf + ctx->cur)[0] != 'f' ||
+        (ctx->buffer.buf + ctx->cur)[1] != 'o' ||
+        (ctx->buffer.buf + ctx->cur)[2] != 'o'
+    ) goto L0000;
+    ctx->cur += 3;
     ctx->level--;
     PCC_DEBUG(PCC_DBG_MATCH, "tmidl", ctx->level, chunk->pos, (ctx->buffer.buf + chunk->pos), (ctx->cur - chunk->pos));
     return chunk;
