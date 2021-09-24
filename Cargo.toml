@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/tmidl-json",
+    "crates/tmidl-sys",
+]
+resolver = "2"
