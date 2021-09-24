@@ -6,7 +6,14 @@ project(TMIDL
     LANGUAGES C
 )
 
-add_library(tmidl STATIC headers/tmidl.h src/tmidl.c)
+add_library(tmidl STATIC
+    headers/tmidl.h
+    src/auxil.c
+    src/auxil.h
+    src/generated.c
+    src/generated.h
+    src/tmidl.c
+)
 target_include_directories(tmidl PUBLIC headers)
 set_property(TARGET tmidl PROPERTY C_STANDARD 11)
 

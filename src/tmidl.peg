@@ -1,0 +1,10 @@
+%auxil "pcc_auxil_o *"
+%header {
+#include "auxil.h"
+}
+%source {
+#define PCC_GETCHAR(auxil) auxil_getchar(auxil)
+#define PCC_ERROR(auxil) auxil_error(auxil)
+}
+
+tmidl <- "foo" ~{ printf("Failed to parse TMIDL\n"); }

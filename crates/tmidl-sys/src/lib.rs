@@ -1,3 +1,3 @@
 extern {
-    pub fn say_hello();
+    pub fn parse_tmidl() -> bool;
 }

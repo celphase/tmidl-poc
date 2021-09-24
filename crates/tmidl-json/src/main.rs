@@ -1,7 +1,9 @@
-use tmidl_sys::say_hello;
+use tmidl_sys::parse_tmidl;
 
 fn main() {
-    unsafe {
-        say_hello();
+    let result = unsafe { parse_tmidl() };
+
+    if !result {
+        println!("Parsing failed");
     }
 }

@@ -3,4 +3,5 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}/lib", dst.display());
     println!("cargo:rustc-link-lib=static=tmidl");
+    println!("cargo:rerun-if-changed=../../src");
 }
