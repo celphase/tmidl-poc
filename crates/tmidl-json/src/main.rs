@@ -3,15 +3,15 @@ use std::{ffi::c_void, str::Chars};
 use tmidl_sys::{parse_tmidl, Callbacks};
 
 fn main() {
-    let input = "foo".to_string();
+    let input_path = std::env::args().nth(1).unwrap();
+    let input = std::fs::read_to_string(input_path).unwrap();
 
-    let result = unsafe {
-        let mut context = Context {
-            input: input.chars(),
-        };
-        let callbacks = Callbacks { next_codepoint };
-        parse_tmidl(&callbacks, &mut context as *mut _ as *mut _)
+    let mut context = Context {
+        input: input.chars(),
     };
+    let callbacks = Callbacks { next_codepoint };
+
+    let result = unsafe { parse_tmidl(&callbacks, &mut context as *mut _ as *mut _) };
 
     if !result {
         println!("Parsing failed");

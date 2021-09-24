@@ -28,7 +28,7 @@ static size_t pcc_strnlen(const char *str, size_t maxlen) {
 #include "generated.h"
 
 #define PCC_GETCHAR(auxil) auxil_getchar(auxil)
-#define PCC_ERROR(auxil) auxil_error(auxil)
+#define PCC_ERROR(auxil) { auxil_error(auxil); *ret = 0; }
 #ifndef PCC_BUFFERSIZE
 #define PCC_BUFFERSIZE 256
 #endif /* !PCC_BUFFERSIZE */

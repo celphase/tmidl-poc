@@ -12,7 +12,12 @@ bool parse_tmidl(const tmidl_callbacks_i *callbacks, void *context) {
     auxil.context = context;
 
     pcc_context_t *ctx = pcc_create(&auxil);
-    while (pcc_parse(ctx, NULL));
+
+    int ret = 1;
+    while (ret == 1) {
+        pcc_parse(ctx, &ret);
+    }
+
     pcc_destroy(ctx);
 
     return auxil.success;

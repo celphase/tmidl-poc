@@ -6,7 +6,7 @@
 
 %source {
 #define PCC_GETCHAR(auxil) auxil_getchar(auxil)
-#define PCC_ERROR(auxil) auxil_error(auxil)
+#define PCC_ERROR(auxil) { auxil_error(auxil); *ret = 0; }
 }
 
 tmidl <- "foo"
