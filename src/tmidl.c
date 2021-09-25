@@ -8,7 +8,7 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
     item_o *item = malloc(sizeof(item_o));
     item->type = ITEM_OPAQUE;
     item->name = malloc(strlen(xs[0]) + 1);
-    item->comment = NULL;
+    item->doc = NULL;
     strcpy(item->name, xs[0]);
 
     mpcf_all_free(n, xs, x);
@@ -34,6 +34,7 @@ static free_items(items_o *items)
     for (int i = 0; i < items->count; i++)
     {
         free(items->items[i].name);
+        free(items->items[i].doc);
     }
     free(items->items);
     free(items);
@@ -84,11 +85,19 @@ mpc_parser_t *doc_comments()
         free, free);
 }
 
+static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
+{
+    item_o *item = xs[1];
+    item->doc = xs[0];
+
+    return item;
+}
+
 mpc_parser_t *api_content()
 {
     mpc_parser_t *any_item = mpc_or(2, opaque_item(), interface_item());
     mpc_parser_t *commented_item = mpc_and(
-        2, mpcf_snd_free,
+        2, fold_commented_item,
         mpc_maybe(doc_comments()), any_item,
         free);
 
@@ -130,17 +139,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
 
     for (int i = 0; i < items->count; i++)
     {
-        item_o *item = &items->items[i];
-
-        switch (item->type)
-        {
-        case ITEM_OPAQUE:
-            callbacks->on_item_opaque(items->items[i].name, user_context);
-            break;
-        case ITEM_INTERFACE:
-            callbacks->on_item_interface(items->items[i].name, user_context);
-            break;
-        }
+        callbacks->on_item(&items->items[i], user_context);
     }
 
     // Clean up the parsed items

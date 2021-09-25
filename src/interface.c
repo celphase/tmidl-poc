@@ -8,7 +8,7 @@ static mpc_val_t *fold_interface(int n, mpc_val_t **xs, int x)
     item_o *item = malloc(sizeof(item_o));
     item->type = ITEM_INTERFACE;
     item->name = malloc(strlen(xs[4]) + 1);
-    item->comment = NULL;
+    item->doc = NULL;
     strcpy(item->name, xs[4]);
 
     mpcf_all_free(n, xs, x);

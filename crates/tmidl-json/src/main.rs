@@ -21,11 +21,7 @@ fn main() {
     let input = CString::new(input_str.clone()).unwrap();
 
     let mut context = Context::default();
-    let callbacks = Callbacks {
-        on_item_opaque,
-        on_item_interface,
-        on_error,
-    };
+    let callbacks = Callbacks { on_item, on_error };
 
     let result =
         unsafe { parse_tmidl(input.as_ptr(), &callbacks, &mut context as *mut _ as *mut _) };
@@ -51,24 +47,18 @@ fn main() {
     println!("{}", json);
 }
 
-unsafe extern "C" fn on_item_opaque(name: *const c_char, user_context: *mut c_void) {
+unsafe extern "C" fn on_item(item: *const tmidl_sys::Item, user_context: *mut c_void) {
     let context = &mut *(user_context as *mut Context);
-    let name = CStr::from_ptr(name);
 
-    let item = Item {
-        ty_: ItemType::Opaque,
-        name: name.to_string_lossy().to_string(),
+    let ty_ = match (*item).ty_ {
+        tmidl_sys::ItemType::Opaque => ItemType::Opaque,
+        tmidl_sys::ItemType::Interface => ItemType::Interface,
     };
-    context.api_file.items.push(item);
-}
-
-unsafe extern "C" fn on_item_interface(name: *const c_char, user_context: *mut c_void) {
-    let context = &mut *(user_context as *mut Context);
-    let name = CStr::from_ptr(name);
 
     let item = Item {
-        ty_: ItemType::Interface,
-        name: name.to_string_lossy().to_string(),
+        ty_,
+        name: CStr::from_ptr((*item).name).to_str().unwrap().to_owned(),
+        doc: CStr::from_ptr((*item).doc).to_str().unwrap().to_owned(),
     };
     context.api_file.items.push(item);
 }
@@ -95,9 +85,10 @@ struct ApiFile {
 
 #[derive(Serialize)]
 struct Item {
-    #[serde(rename = "type")] 
+    #[serde(rename = "type")]
     ty_: ItemType,
     name: String,
+    doc: String,
 }
 
 #[derive(Serialize)]

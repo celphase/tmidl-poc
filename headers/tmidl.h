@@ -6,9 +6,19 @@
 extern "C" {
 #endif
 
+typedef struct item_o
+{
+    enum Type
+    {
+        ITEM_OPAQUE,
+        ITEM_INTERFACE
+    } type;
+    char *name;
+    char *doc;
+} item_o;
+
 typedef struct tmidl_callbacks_i {
-    void (*on_item_opaque)(const char *name, void *user_context);
-    void (*on_item_interface)(const char *name, void *user_context);
+    void (*on_item)(const item_o *item, void *user_context);
     void (*on_error)(const char *message, long position, void *user_context);
 } tmidl_callbacks_i;
 
