@@ -62,7 +62,6 @@ unsafe extern "C" fn on_item(item: *const tmidl_sys::ApiItem, user_context: *mut
     let mut functions = Vec::new();
     for i in 0..(*item).function_count {
         let fnptr = *(*item).functions.offset(i as isize);
-        println!("{:?}", CStr::from_ptr((*fnptr).name));
         functions.push(c_to_string((*fnptr).name));
     }
 
