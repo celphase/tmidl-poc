@@ -7,17 +7,15 @@
 typedef struct items_t
 {
     int count;
-    item_t *items;
+    item_t **items;
 } items_t;
 
 static free_items(items_t *items)
 {
     for (int i = 0; i < items->count; i++)
     {
-        free(items->items[i].name);
-        free(items->items[i].doc);
+        free(items->items[i]);
     }
-    free(items->items);
     free(items);
 }
 
@@ -42,8 +40,7 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     {
         if (xs[i] != NULL)
         {
-            items->items[items_i] = *(item_t *)xs[i];
-            free(xs[i]);
+            items->items[items_i] = xs[i];
             items_i += 1;
         }
     }
@@ -91,7 +88,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
 
     for (int i = 0; i < items->count; i++)
     {
-        callbacks->on_item(&items->items[i], user_context);
+        callbacks->on_item(items->items[i], user_context);
     }
 
     // Clean up the parsed items

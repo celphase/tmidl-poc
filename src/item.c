@@ -30,6 +30,11 @@ static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
     item_t *item = xs[1];
     item->doc = xs[0];
 
+    if (item->doc == NULL) {
+        item->doc = malloc(1);
+        item->doc[0] = '\0';
+    }
+
     return item;
 }
 
@@ -40,4 +45,10 @@ mpc_parser_t *any_item()
         2, fold_commented_item,
         mpc_maybe(doc_comment()), any_item,
         free);
+}
+
+void free_item(item_t *item) {
+    free(item->name);
+    free(item->doc);
+    free(item);
 }
