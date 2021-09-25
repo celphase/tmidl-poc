@@ -83,7 +83,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     if (!success)
     {
         char *message = mpc_err_string(r.error);
-        callbacks->on_error(message, user_context);
+        callbacks->on_error(message, r.error->state.pos, user_context);
 
         free(message);
         mpc_err_delete(r.error);
