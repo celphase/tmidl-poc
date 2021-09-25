@@ -55,20 +55,22 @@ unsafe extern "C" fn on_item_opaque(name: *const c_char, user_context: *mut c_vo
     let context = &mut *(user_context as *mut Context);
     let name = CStr::from_ptr(name);
 
-    context
-        .api_file
-        .opaques
-        .push(name.to_string_lossy().to_string());
+    let item = Item {
+        ty_: ItemType::Opaque,
+        name: name.to_string_lossy().to_string(),
+    };
+    context.api_file.items.push(item);
 }
 
 unsafe extern "C" fn on_item_interface(name: *const c_char, user_context: *mut c_void) {
     let context = &mut *(user_context as *mut Context);
     let name = CStr::from_ptr(name);
 
-    context
-        .api_file
-        .interfaces
-        .push(name.to_string_lossy().to_string());
+    let item = Item {
+        ty_: ItemType::Interface,
+        name: name.to_string_lossy().to_string(),
+    };
+    context.api_file.items.push(item);
 }
 
 unsafe extern "C" fn on_error(message: *const c_char, position: i64, user_context: *mut c_void) {
@@ -88,6 +90,18 @@ struct Context {
 
 #[derive(Default, Serialize)]
 struct ApiFile {
-    opaques: Vec<String>,
-    interfaces: Vec<String>,
+    items: Vec<Item>,
+}
+
+#[derive(Serialize)]
+struct Item {
+    #[serde(rename = "type")] 
+    ty_: ItemType,
+    name: String,
+}
+
+#[derive(Serialize)]
+enum ItemType {
+    Opaque,
+    Interface,
 }
