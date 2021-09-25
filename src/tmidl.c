@@ -7,6 +7,15 @@ typedef struct context_o {
     void *user_context;
 } context_o;
 
+static mpc_val_t *fold_nth_free(int n, mpc_val_t **xs, int x) {
+    int i;
+    for (i = 0; i < n; i++) {
+        if (i != x) { free(xs[i]); }
+    }
+    return xs[x];
+}
+static mpc_val_t *fold_fth(int n, mpc_val_t **xs) { return fold_nth_free(n, xs, 4); }
+
 static mpc_parser_t *any_newline()
 {
     return mpc_expect(mpc_or(2, mpc_string("\r\n"), mpc_char('\n')), "newline");
@@ -25,31 +34,38 @@ static mpc_parser_t *td_struct()
         free);
 }
 
-static mpc_val_t *apply_opaque(mpc_val_t *x, context_o *context) {
-    context->callbacks->on_item(context->user_context);
+static mpc_val_t *apply_opaque(mpc_val_t *value, context_o *context) {
+    context->callbacks->on_item_opaque(value, context->user_context);
     return NULL;
 }
 
 static mpc_parser_t *opaque_item(context_o *context)
 {
     mpc_parser_t *item = mpc_and(
-        3, mpcf_fst,
+        3, mpcf_fst_free,
         td_struct(), mpc_strip(identifier()), mpc_char(';'),
         free, free);
 
     return mpc_apply_to(item, apply_opaque, context);
 }
 
-static mpc_parser_t *interface_item()
+static mpc_val_t *apply_interface(mpc_val_t *value, context_o *context) {
+    context->callbacks->on_item_interface(value, context->user_context);
+    return NULL;
+}
+
+static mpc_parser_t *interface_item(context_o *context)
 {
     mpc_parser_t *content_c = mpc_oneof(
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_()*; \n\r\t");
     mpc_parser_t *content = mpc_many(mpcf_all_free, content_c);
-    return mpc_and(
-        6, mpcf_all_free,
+    mpc_parser_t *item = mpc_and(
+        6, fold_fth,
         td_struct(), mpc_strip(mpc_char('{')), content, mpc_strip(mpc_char('}')),
         mpc_strip(identifier()), mpc_char(';'),
         free, free, free, free, free);
+
+    return mpc_apply_to(item, apply_interface, context);
 }
 
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
@@ -66,7 +82,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         free);
 
     // Items aggregate
-    mpc_parser_t *item = mpc_strip(mpc_or(2, opaque_item(&context), interface_item()));
+    mpc_parser_t *item = mpc_strip(mpc_or(2, opaque_item(&context), interface_item(&context)));
     mpc_parser_t *items = mpc_many(mpcf_all_free, item);
 
     // Main tmidl definition
