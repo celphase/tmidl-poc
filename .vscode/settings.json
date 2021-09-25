@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "mpc_utils.h": "c",
+        "item_interface.h": "c",
+        "tmidl.h": "c",
+        "types.h": "c",
+        "mpc.h": "c",
+        "item.h": "c"
+    }
+}

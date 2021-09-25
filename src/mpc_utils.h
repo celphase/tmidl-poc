@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mpc.h"
+#include <mpc.h>
 
 static mpc_parser_t *any_newline()
 {

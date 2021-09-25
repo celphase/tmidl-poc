@@ -6,6 +6,14 @@ project(TMIDL
     LANGUAGES C
 )
 
+if(CMAKE_COMPILER_IS_GNUCC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+endif()
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+endif()
+
 # MPC parsing library dependency
 
 add_library(vendor_mpc STATIC
@@ -20,8 +28,10 @@ add_library(tmidl STATIC
     headers/tmidl.h
     src/doc_comment.c
     src/doc_comment.h
-    src/interface.c
-    src/interface.h
+    src/item_interface.c
+    src/item_interface.h
+    src/item.c
+    src/item.h
     src/mpc_utils.h
     src/tmidl.c
 )

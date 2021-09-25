@@ -1,17 +1,17 @@
 #include <tmidl.h>
 
-#include "interface.h"
+#include "item_interface.h"
 #include "mpc_utils.h"
 
-static mpc_val_t *fold_interface(int n, mpc_val_t **xs, int x)
+static mpc_val_t *fold_interface(int n, mpc_val_t **xs)
 {
-    item_o *item = malloc(sizeof(item_o));
+    item_t *item = malloc(sizeof(item_t));
     item->type = ITEM_INTERFACE;
     item->name = malloc(strlen(xs[4]) + 1);
     item->doc = NULL;
     strcpy(item->name, xs[4]);
 
-    mpcf_all_free(n, xs, x);
+    mpcf_all_free(n, xs);
     return item;
 }
 

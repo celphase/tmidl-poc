@@ -1,36 +1,16 @@
 #include <tmidl.h>
 
-#include "doc_comment.h"
-#include "interface.h"
+#include "types.h"
+#include "item.h"
 #include "mpc_utils.h"
 
-static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
-{
-    item_o *item = malloc(sizeof(item_o));
-    item->type = ITEM_OPAQUE;
-    item->name = malloc(strlen(xs[0]) + 1);
-    item->doc = NULL;
-    strcpy(item->name, xs[0]);
-
-    mpcf_all_free(n, xs, x);
-    return item;
-}
-
-static mpc_parser_t *opaque_item()
-{
-    return mpc_and(
-        3, fold_opaque,
-        td_struct(), mpc_strip(identifier()), mpc_char(';'),
-        free, free);
-}
-
-typedef struct items_o
+typedef struct items_t
 {
     int count;
-    item_o *items;
-} items_o;
+    item_t *items;
+} items_t;
 
-static free_items(items_o *items)
+static free_items(items_t *items)
 {
     for (int i = 0; i < items->count; i++)
     {
@@ -43,7 +23,7 @@ static free_items(items_o *items)
 
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 {
-    items_o *items = malloc(sizeof(items_o));
+    items_t *items = malloc(sizeof(items_t));
     items->count = 0;
 
     // Count the items
@@ -56,13 +36,13 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     }
 
     // Allocate the array
-    items->items = malloc(sizeof(item_o) * items->count);
+    items->items = malloc(sizeof(item_t) * items->count);
     int items_i = 0;
     for (int i = 0; i < n; i++)
     {
         if (xs[i] != NULL)
         {
-            items->items[items_i] = *(item_o *)xs[i];
+            items->items[items_i] = *(item_t *)xs[i];
             free(xs[i]);
             items_i += 1;
         }
@@ -71,23 +51,9 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     return items;
 }
 
-static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
-{
-    item_o *item = xs[1];
-    item->doc = xs[0];
-
-    return item;
-}
-
 mpc_parser_t *api_content()
 {
-    mpc_parser_t *any_item = mpc_or(2, opaque_item(), interface_item());
-    mpc_parser_t *commented_item = mpc_and(
-        2, fold_commented_item,
-        mpc_maybe(doc_comment()), any_item,
-        free);
-
-    return mpc_many(fold_items, mpc_strip(commented_item));
+    return mpc_many(fold_items, mpc_strip(any_item()));
 }
 
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
@@ -121,7 +87,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     }
 
     // Pass items to caller
-    items_o *items = r.output;
+    items_t *items = r.output;
 
     for (int i = 0; i < items->count; i++)
     {

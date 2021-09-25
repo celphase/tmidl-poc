@@ -3,7 +3,7 @@
 
 mpc_val_t *apply_comment_line(mpc_val_t *x)
 {
-    const char *trimmed = mpcf_strtriml(mpcf_strtrimr(x));
+    char *trimmed = mpcf_strtriml(mpcf_strtrimr(x));
     return strcat(trimmed, "\n");
 }
 
