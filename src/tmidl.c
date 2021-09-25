@@ -28,6 +28,16 @@ typedef struct items_o
     item_o *items;
 } items_o;
 
+static free_items(items_o *items)
+{
+    for (int i = 0; i < items->count; i++)
+    {
+        free(items->items[i].name);
+    }
+    free(items->items);
+    free(items);
+}
+
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 {
     items_o *items = malloc(sizeof(items_o));
@@ -72,7 +82,9 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     mpc_parser_t *items = mpc_many(fold_items, item);
 
     // Main tmidl definition
-    mpc_parser_t *tmidl_def = mpc_whole(mpc_and(2, mpcf_snd_free, pragma_once, items, free), free);
+    mpc_parser_t *tmidl_def = mpc_whole(
+        mpc_and(2, mpcf_snd_free, pragma_once, items, free),
+        free_items);
     mpc_define(tmidl, tmidl_def);
 
     // Parse the input
@@ -108,12 +120,8 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         }
     }
 
-    for (int i = 0; i < values->count; i++)
-    {
-        free(values->items[i].name);
-    }
-    free(values->items);
-    free(values);
+    // Clean up the parsed items
+    free_items(values);
 
     return true;
 }
