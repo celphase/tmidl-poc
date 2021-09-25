@@ -108,6 +108,10 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         }
     }
 
+    for (int i = 0; i < values->count; i++)
+    {
+        free(values->items[i].name);
+    }
     free(values->items);
     free(values);
 
