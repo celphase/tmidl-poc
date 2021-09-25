@@ -8,6 +8,9 @@ project(TMIDL
 
 add_library(tmidl STATIC
     headers/tmidl.h
+    src/interface.c
+    src/interface.h
+    src/mpc_utils.h
     src/mpc.c
     src/mpc.h
     src/tmidl.c
