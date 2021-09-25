@@ -18,7 +18,7 @@ static mpc_val_t *fold_interface(int n, mpc_val_t **xs, int x)
 mpc_parser_t *interface_item()
 {
     mpc_parser_t *content_c = mpc_oneof(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_()*; \n\r\t");
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_()*;/. \n\r\t");
     mpc_parser_t *content = mpc_many(mpcf_all_free, content_c);
 
     return mpc_and(

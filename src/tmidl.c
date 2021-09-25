@@ -1,5 +1,6 @@
 #include <tmidl.h>
 
+#include "doc_comment.h"
 #include "interface.h"
 #include "mpc_utils.h"
 
@@ -70,21 +71,6 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     return items;
 }
 
-mpc_parser_t *doc_comments()
-{
-    mpc_parser_t *comment_char = mpc_and(
-        2, mpcf_snd_free,
-        mpc_not(any_newline(), free),
-        mpc_any(),
-        free);
-    mpc_parser_t *comment_contents = mpc_many(mpcf_strfold, comment_char);
-
-    return mpc_and(
-        3, mpcf_snd_free,
-        mpc_string("//"), comment_contents, any_newline(),
-        free, free);
-}
-
 static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
 {
     item_o *item = xs[1];
@@ -98,7 +84,7 @@ mpc_parser_t *api_content()
     mpc_parser_t *any_item = mpc_or(2, opaque_item(), interface_item());
     mpc_parser_t *commented_item = mpc_and(
         2, fold_commented_item,
-        mpc_maybe(doc_comments()), any_item,
+        mpc_maybe(doc_comment()), any_item,
         free);
 
     return mpc_many(fold_items, mpc_strip(commented_item));

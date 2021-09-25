@@ -18,6 +18,8 @@ set_property(TARGET vendor_mpc PROPERTY C_STANDARD 11)
 
 add_library(tmidl STATIC
     headers/tmidl.h
+    src/doc_comment.c
+    src/doc_comment.h
     src/interface.c
     src/interface.h
     src/mpc_utils.h

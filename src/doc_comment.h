@@ -2,4 +2,4 @@
 
 #include "types.h"
 
-mpc_parser_t *interface_item();
+mpc_parser_t *doc_comment();
