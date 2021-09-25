@@ -8,6 +8,7 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
     item_o *item = malloc(sizeof(item_o));
     item->type = ITEM_OPAQUE;
     item->name = malloc(strlen(xs[0]) + 1);
+    item->comment = NULL;
     strcpy(item->name, xs[0]);
 
     mpcf_all_free(n, xs, x);
@@ -68,6 +69,32 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     return items;
 }
 
+mpc_parser_t *doc_comments()
+{
+    mpc_parser_t *comment_char = mpc_and(
+        2, mpcf_snd_free,
+        mpc_not(any_newline(), free),
+        mpc_any(),
+        free);
+    mpc_parser_t *comment_contents = mpc_many(mpcf_strfold, comment_char);
+
+    return mpc_and(
+        3, mpcf_snd_free,
+        mpc_string("//"), comment_contents, any_newline(),
+        free, free);
+}
+
+mpc_parser_t *api_content()
+{
+    mpc_parser_t *any_item = mpc_or(2, opaque_item(), interface_item());
+    mpc_parser_t *commented_item = mpc_and(
+        2, mpcf_snd_free,
+        mpc_maybe(doc_comments()), any_item,
+        free);
+
+    return mpc_many(fold_items, mpc_strip(commented_item));
+}
+
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
 {
     mpc_parser_t *tmidl = mpc_new("tmidl");
@@ -77,13 +104,9 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         mpc_string("#pragma once"), any_newline(),
         free);
 
-    // Items aggregate
-    mpc_parser_t *item = mpc_strip(mpc_or(2, opaque_item(), interface_item()));
-    mpc_parser_t *items = mpc_many(fold_items, item);
-
     // Main tmidl definition
     mpc_parser_t *tmidl_def = mpc_whole(
-        mpc_and(2, mpcf_snd_free, pragma_once, items, free),
+        mpc_and(2, mpcf_snd_free, pragma_once, api_content(), free),
         free_items);
     mpc_define(tmidl, tmidl_def);
 
@@ -103,25 +126,25 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     }
 
     // Pass items to caller
-    items_o *values = r.output;
+    items_o *items = r.output;
 
-    for (int i = 0; i < values->count; i++)
+    for (int i = 0; i < items->count; i++)
     {
-        item_o *item = &values->items[i];
+        item_o *item = &items->items[i];
 
         switch (item->type)
         {
         case ITEM_OPAQUE:
-            callbacks->on_item_opaque(values->items[i].name, user_context);
+            callbacks->on_item_opaque(items->items[i].name, user_context);
             break;
         case ITEM_INTERFACE:
-            callbacks->on_item_interface(values->items[i].name, user_context);
+            callbacks->on_item_interface(items->items[i].name, user_context);
             break;
         }
     }
 
     // Clean up the parsed items
-    free_items(values);
+    free_items(items);
 
     return true;
 }

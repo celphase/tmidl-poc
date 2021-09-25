@@ -13,4 +13,5 @@ typedef struct item_o
         ITEM_INTERFACE
     } type;
     char *name;
+    char *comment;
 } item_o;
