@@ -4,23 +4,27 @@
 #include "interface.h"
 #include "mpc_utils.h"
 
-static mpc_val_t *apply_opaque(mpc_val_t *value, context_o *context)
+static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
 {
-    context->callbacks->on_item_opaque(value, context->user_context);
-    return NULL;
+    item_o *item = malloc(sizeof(item_o));
+    item->type = ITEM_OPAQUE;
+    item->name = malloc(strlen(xs[0]) + 1);
+    strcpy(item->name, xs[0]);
+
+    mpcf_all_free(n, xs, x);
+    return item;
 }
 
 static mpc_parser_t *opaque_item(context_o *context)
 {
-    mpc_parser_t *item = mpc_and(
-        3, mpcf_fst_free,
+    return mpc_and(
+        3, fold_opaque,
         td_struct(), mpc_strip(identifier()), mpc_char(';'),
         free, free);
-
-    return mpc_apply_to(item, apply_opaque, context);
 }
 
-typedef struct items_o {
+typedef struct items_o
+{
     int count;
     item_o *items;
 } items_o;
@@ -31,8 +35,10 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     items->count = 0;
 
     // Count the items
-    for (int i = 0; i < n; i++) {
-        if (xs[i] != NULL) {
+    for (int i = 0; i < n; i++)
+    {
+        if (xs[i] != NULL)
+        {
             items->count += 1;
         }
     }
@@ -42,8 +48,9 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     int items_i = 0;
     for (int i = 0; i < n; i++)
     {
-        if (xs[i] != NULL) {
-            items->items[items_i] = *(item_o*)xs[i];
+        if (xs[i] != NULL)
+        {
+            items->items[items_i] = *(item_o *)xs[i];
             free(xs[i]);
             items_i += 1;
         }
@@ -90,8 +97,19 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     // Pass items to caller
     items_o *values = r.output;
 
-    for(int i = 0; i < values->count; i++) {
-        callbacks->on_item_interface(values->items[i].name, user_context);
+    for (int i = 0; i < values->count; i++)
+    {
+        item_o *item = &values->items[i];
+
+        switch (item->type)
+        {
+        case ITEM_OPAQUE:
+            callbacks->on_item_opaque(values->items[i].name, user_context);
+            break;
+        case ITEM_INTERFACE:
+            callbacks->on_item_interface(values->items[i].name, user_context);
+            break;
+        }
     }
 
     free(values->items);
