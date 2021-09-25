@@ -47,20 +47,28 @@ fn main() {
     println!("{}", json);
 }
 
+unsafe fn c_to_string(c_str: *const c_char) -> String {
+    CStr::from_ptr(c_str).to_str().unwrap().to_owned()
+}
+
 unsafe extern "C" fn on_item(item: *const tmidl_sys::ApiItem, user_context: *mut c_void) {
     let context = &mut *(user_context as *mut Context);
 
     let meta = ApiItemMeta {
-        name: CStr::from_ptr((*item).name).to_str().unwrap().to_owned(),
-        doc: CStr::from_ptr((*item).doc).to_str().unwrap().to_owned(),
+        name: c_to_string((*item).name),
+        doc: c_to_string((*item).doc),
     };
+
+    let mut functions = Vec::new();
+    for i in 0..(*item).function_count {
+        let fnptr = *(*item).functions.offset(i as isize);
+        println!("{:?}", CStr::from_ptr((*fnptr).name));
+        functions.push(c_to_string((*fnptr).name));
+    }
 
     let item = match (*item).ty_ {
         tmidl_sys::ApiItemType::Opaque => ApiItem::Opaque { meta },
-        tmidl_sys::ApiItemType::Interface => ApiItem::Interface {
-            meta,
-            functions: Vec::new(),
-        },
+        tmidl_sys::ApiItemType::Interface => ApiItem::Interface { meta, functions },
     };
 
     context.api_file.items.push(item);

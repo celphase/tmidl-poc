@@ -11,6 +11,8 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
     item->type = ITEM_OPAQUE;
     item->name = malloc(strlen(xs[0]) + 1);
     item->doc = NULL;
+    item->functions = NULL;
+    item->functions_count = 0;
     strcpy(item->name, xs[0]);
 
     mpcf_all_free(n, xs, x);
@@ -30,7 +32,8 @@ static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
     api_item_t *item = xs[1];
     item->doc = xs[0];
 
-    if (item->doc == NULL) {
+    if (item->doc == NULL)
+    {
         item->doc = malloc(1);
         item->doc[0] = '\0';
     }
@@ -47,8 +50,19 @@ mpc_parser_t *any_item()
         free);
 }
 
-void free_item(api_item_t *item) {
+void free_item(api_item_t *item)
+{
     free(item->name);
     free(item->doc);
+
+    if (item->functions != NULL)
+    {
+        for (int i = 0; i < item->functions_count; i++)
+        {
+            free(item->functions[i]);
+        }
+        free(item->functions);
+    }
+
     free(item);
 }

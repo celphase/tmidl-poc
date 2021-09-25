@@ -14,7 +14,7 @@ static free_items(items_t *items)
 {
     for (int i = 0; i < items->count; i++)
     {
-        free(items->items[i]);
+        free_item(items->items[i]);
     }
     free(items);
 }

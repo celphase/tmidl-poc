@@ -5,12 +5,19 @@ pub struct ApiItem {
     pub ty_: ApiItemType,
     pub name: *const c_char,
     pub doc: *const c_char,
+    pub functions: *const *const ApiFunction,
+    pub function_count: i32,
 }
 
 #[repr(C)]
 pub enum ApiItemType {
     Opaque,
     Interface,
+}
+
+#[repr(C)]
+pub struct ApiFunction {
+    pub name: *const c_char,
 }
 
 #[repr(C)]
