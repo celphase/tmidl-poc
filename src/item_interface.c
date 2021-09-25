@@ -5,7 +5,7 @@
 
 static mpc_val_t *fold_interface(int n, mpc_val_t **xs)
 {
-    item_t *item = malloc(sizeof(item_t));
+    api_item_t *item = malloc(sizeof(api_item_t));
     item->type = ITEM_INTERFACE;
     item->name = malloc(strlen(xs[4]) + 1);
     item->doc = NULL;

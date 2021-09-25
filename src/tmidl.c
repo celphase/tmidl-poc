@@ -7,7 +7,7 @@
 typedef struct items_t
 {
     int count;
-    item_t **items;
+    api_item_t **items;
 } items_t;
 
 static free_items(items_t *items)
@@ -34,7 +34,7 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     }
 
     // Allocate the array
-    items->items = malloc(sizeof(item_t) * items->count);
+    items->items = malloc(sizeof(api_item_t) * items->count);
     int items_i = 0;
     for (int i = 0; i < n; i++)
     {

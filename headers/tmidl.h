@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-typedef struct item_t
+typedef struct api_item_t
 {
     enum Type
     {
@@ -15,10 +15,10 @@ typedef struct item_t
     } type;
     char *name;
     char *doc;
-} item_t;
+} api_item_t;
 
 typedef struct tmidl_callbacks_i {
-    void (*on_item)(const item_t *item, void *user_context);
+    void (*on_item)(const api_item_t *item, void *user_context);
     void (*on_error)(const char *message, long position, void *user_context);
 } tmidl_callbacks_i;
 

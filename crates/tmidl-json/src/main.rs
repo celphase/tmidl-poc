@@ -47,17 +47,17 @@ fn main() {
     println!("{}", json);
 }
 
-unsafe extern "C" fn on_item(item: *const tmidl_sys::Item, user_context: *mut c_void) {
+unsafe extern "C" fn on_item(item: *const tmidl_sys::ApiItem, user_context: *mut c_void) {
     let context = &mut *(user_context as *mut Context);
 
-    let meta = ItemMeta {
+    let meta = ApiItemMeta {
         name: CStr::from_ptr((*item).name).to_str().unwrap().to_owned(),
         doc: CStr::from_ptr((*item).doc).to_str().unwrap().to_owned(),
     };
 
     let item = match (*item).ty_ {
-        tmidl_sys::ItemType::Opaque => Item::Opaque { meta },
-        tmidl_sys::ItemType::Interface => Item::Interface {
+        tmidl_sys::ApiItemType::Opaque => ApiItem::Opaque { meta },
+        tmidl_sys::ApiItemType::Interface => ApiItem::Interface {
             meta,
             functions: Vec::new(),
         },
@@ -83,25 +83,25 @@ struct Context {
 
 #[derive(Default, Serialize)]
 struct ApiFile {
-    items: Vec<Item>,
+    items: Vec<ApiItem>,
 }
 
 #[derive(Serialize)]
 #[serde(tag = "type")]
-enum Item {
+enum ApiItem {
     Opaque {
         #[serde(flatten)]
-        meta: ItemMeta,
+        meta: ApiItemMeta,
     },
     Interface {
         #[serde(flatten)]
-        meta: ItemMeta,
+        meta: ApiItemMeta,
         functions: Vec<String>,
     },
 }
 
 #[derive(Serialize)]
-struct ItemMeta {
+struct ApiItemMeta {
     name: String,
     doc: String,
 }
