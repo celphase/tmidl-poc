@@ -1,2 +1,5 @@
 /build
 /target
+
+# VSCode keeps adding this
+/.vscode/settings.json
