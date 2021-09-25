@@ -8,7 +8,7 @@ fn main() {
     let input = CString::new(input).unwrap();
 
     let mut user_context = UserContext {};
-    let callbacks = Callbacks { next_codepoint };
+    let callbacks = Callbacks { on_item };
 
     let result = unsafe {
         parse_tmidl(
@@ -25,7 +25,7 @@ fn main() {
 
 struct UserContext {}
 
-extern "C" fn next_codepoint(user_context: *mut c_void) -> i32 {
+extern "C" fn on_item(user_context: *mut c_void) {
     let _user_context: &mut UserContext = unsafe { &mut *(user_context as *mut UserContext) };
-    -1
+    println!("Item");
 }
