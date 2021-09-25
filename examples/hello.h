@@ -13,3 +13,5 @@ typedef struct hello_i
     // Destroys an hello instance.
     void (*destroy)(hello_o *inst);
 } hello_i;
+
+typedef struct uncommented_o uncommented_o;

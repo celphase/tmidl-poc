@@ -50,16 +50,19 @@ fn main() {
 unsafe extern "C" fn on_item(item: *const tmidl_sys::Item, user_context: *mut c_void) {
     let context = &mut *(user_context as *mut Context);
 
-    let ty_ = match (*item).ty_ {
-        tmidl_sys::ItemType::Opaque => ItemType::Opaque,
-        tmidl_sys::ItemType::Interface => ItemType::Interface,
-    };
-
-    let item = Item {
-        ty_,
+    let meta = ItemMeta {
         name: CStr::from_ptr((*item).name).to_str().unwrap().to_owned(),
         doc: CStr::from_ptr((*item).doc).to_str().unwrap().to_owned(),
     };
+
+    let item = match (*item).ty_ {
+        tmidl_sys::ItemType::Opaque => Item::Opaque { meta },
+        tmidl_sys::ItemType::Interface => Item::Interface {
+            meta,
+            functions: Vec::new(),
+        },
+    };
+
     context.api_file.items.push(item);
 }
 
@@ -84,15 +87,21 @@ struct ApiFile {
 }
 
 #[derive(Serialize)]
-struct Item {
-    #[serde(rename = "type")]
-    ty_: ItemType,
-    name: String,
-    doc: String,
+#[serde(tag = "type")]
+enum Item {
+    Opaque {
+        #[serde(flatten)]
+        meta: ItemMeta,
+    },
+    Interface {
+        #[serde(flatten)]
+        meta: ItemMeta,
+        functions: Vec<String>,
+    },
 }
 
 #[derive(Serialize)]
-enum ItemType {
-    Opaque,
-    Interface,
+struct ItemMeta {
+    name: String,
+    doc: String,
 }
