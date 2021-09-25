@@ -1,5 +1,6 @@
 #pragma once
 
+// An example opaque type.
 typedef struct hello_o hello_o;
 
 typedef struct hello_i

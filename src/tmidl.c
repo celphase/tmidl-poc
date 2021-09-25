@@ -1,6 +1,5 @@
 #include <tmidl.h>
 
-#include "context.h"
 #include "interface.h"
 #include "mpc_utils.h"
 
@@ -15,7 +14,7 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
     return item;
 }
 
-static mpc_parser_t *opaque_item(context_o *context)
+static mpc_parser_t *opaque_item()
 {
     return mpc_and(
         3, fold_opaque,
@@ -61,10 +60,6 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
 {
-    context_o context;
-    context.callbacks = callbacks;
-    context.user_context = user_context;
-
     mpc_parser_t *tmidl = mpc_new("tmidl");
 
     mpc_parser_t *pragma_once = mpc_and(
@@ -73,7 +68,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         free);
 
     // Items aggregate
-    mpc_parser_t *item = mpc_strip(mpc_or(2, opaque_item(&context), interface_item(&context)));
+    mpc_parser_t *item = mpc_strip(mpc_or(2, opaque_item(), interface_item()));
     mpc_parser_t *items = mpc_many(fold_items, item);
 
     // Main tmidl definition
@@ -87,9 +82,10 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
 
     if (!success)
     {
-        // TODO: Callback error
-        // This also frees
-        mpc_err_print(r.error);
+        char *message = mpc_err_string(r.error);
+        callbacks->on_error(message, user_context);
+
+        free(message);
         mpc_err_delete(r.error);
         return false;
     }

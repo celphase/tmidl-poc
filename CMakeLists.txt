@@ -6,16 +6,29 @@ project(TMIDL
     LANGUAGES C
 )
 
+# MPC parsing library dependency
+
+add_library(vendor_mpc STATIC
+    vendor/mpc/mpc.c
+    vendor/mpc/mpc.h
+)
+set_property(TARGET vendor_mpc PROPERTY C_STANDARD 11)
+
+# Main library
+
 add_library(tmidl STATIC
     headers/tmidl.h
     src/interface.c
     src/interface.h
     src/mpc_utils.h
-    src/mpc.c
-    src/mpc.h
     src/tmidl.c
 )
-target_include_directories(tmidl PUBLIC headers)
 set_property(TARGET tmidl PROPERTY C_STANDARD 11)
 
-install(TARGETS tmidl)
+target_include_directories(tmidl PUBLIC headers)
+target_include_directories(tmidl PRIVATE vendor/mpc)
+target_link_libraries(tmidl PRIVATE vendor_mpc)
+
+# Include static library in install
+
+install(TARGETS tmidl vendor_mpc)
