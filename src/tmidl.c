@@ -44,8 +44,9 @@ static void free_items(util_array_t *array)
     free(array);
 }
 
-mpc_parser_t *api_content()
+static mpc_parser_t *api_content()
 {
+    // TODO: Use "declarations" which are later translated to API items
     return mpc_many(fold_items, mpc_strip(any_item()));
 }
 
@@ -83,6 +84,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     util_array_t *array = r.output;
     api_item_t **items = array->ptr;
 
+    printf("A\n");
     for (int i = 0; i < array->count; i++)
     {
         callbacks->on_item(items[i], user_context);

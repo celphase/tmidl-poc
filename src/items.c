@@ -4,6 +4,23 @@
 #include "items.h"
 #include "mpc_utils.h"
 
+static mpc_parser_t *until_eol()
+{
+    mpc_parser_t *not_newline = mpc_and(
+        2, mpcf_snd,
+        mpc_not(any_newline(), free), mpc_any(),
+        free);
+    return mpc_many(mpcf_strfold, not_newline);
+}
+
+static mpc_parser_t *include_item()
+{
+    return mpc_and(
+        3, mpcf_all_free,
+        mpc_char('#'), until_eol(), any_newline(),
+        free, free);
+}
+
 static mpc_val_t *fold_opaque(int n, mpc_val_t **xs)
 {
     api_item_t *item = malloc(sizeof(api_item_t));
@@ -99,6 +116,13 @@ static mpc_parser_t *interface_item()
 static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
 {
     api_item_t *item = xs[1];
+
+    // Some items may not have any data, in which case just pass them through
+    if (item == NULL)
+    {
+        return NULL;
+    }
+
     item->doc = xs[0];
 
     if (item->doc == NULL)
@@ -112,7 +136,7 @@ static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
 
 mpc_parser_t *any_item()
 {
-    mpc_parser_t *any_item = mpc_or(2, opaque_item(), interface_item());
+    mpc_parser_t *any_item = mpc_or(3, include_item(), opaque_item(), interface_item());
     return mpc_and(
         2, fold_commented_item,
         mpc_maybe(doc_comment()), any_item,
