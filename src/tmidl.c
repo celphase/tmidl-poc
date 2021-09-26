@@ -1,7 +1,7 @@
 #include <tmidl.h>
 
 #include "types.h"
-#include "item.h"
+#include "items.h"
 #include "mpc_utils.h"
 
 typedef struct items_t

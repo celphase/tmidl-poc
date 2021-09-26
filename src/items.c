@@ -1,7 +1,7 @@
 #include <tmidl.h>
 
 #include "doc_comment.h"
-#include "item.h"
+#include "items.h"
 #include "mpc_utils.h"
 
 static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)

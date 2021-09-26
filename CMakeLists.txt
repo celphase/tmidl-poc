@@ -28,8 +28,8 @@ add_library(tmidl STATIC
     headers/tmidl.h
     src/doc_comment.c
     src/doc_comment.h
-    src/item.c
-    src/item.h
+    src/items.c
+    src/items.h
     src/mpc_utils.h
     src/tmidl.c
 )
