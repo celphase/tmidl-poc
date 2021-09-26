@@ -4,48 +4,44 @@
 #include "items.h"
 #include "mpc_utils.h"
 
-typedef struct items_t
-{
-    int count;
-    api_item_t **items;
-} items_t;
-
-static free_items(items_t *items)
-{
-    for (int i = 0; i < items->count; i++)
-    {
-        free_item(items->items[i]);
-    }
-    free(items);
-}
-
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 {
-    items_t *items = malloc(sizeof(items_t));
-    items->count = 0;
+    util_array_t *array = malloc(sizeof(util_array_t));
+    array->count = 0;
 
     // Count the items
     for (int i = 0; i < n; i++)
     {
         if (xs[i] != NULL)
         {
-            items->count += 1;
+            array->count += 1;
         }
     }
 
     // Allocate the array
-    items->items = malloc(sizeof(api_item_t) * items->count);
+    api_item_t **items = malloc(sizeof(api_item_t) * array->count);
+    array->ptr = items;
     int items_i = 0;
     for (int i = 0; i < n; i++)
     {
         if (xs[i] != NULL)
         {
-            items->items[items_i] = xs[i];
+            items[items_i] = xs[i];
             items_i += 1;
         }
     }
 
-    return items;
+    return array;
+}
+
+static void free_items(util_array_t *array)
+{
+    api_item_t **items = array->ptr;
+    for (int i = 0; i < array->count; i++)
+    {
+        free_item(items[i]);
+    }
+    free(array);
 }
 
 mpc_parser_t *api_content()
@@ -84,15 +80,16 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     }
 
     // Pass items to caller
-    items_t *items = r.output;
+    util_array_t *array = r.output;
+    api_item_t **items = array->ptr;
 
-    for (int i = 0; i < items->count; i++)
+    for (int i = 0; i < array->count; i++)
     {
-        callbacks->on_item(items->items[i], user_context);
+        callbacks->on_item(items[i], user_context);
     }
 
     // Clean up the parsed items
-    free_items(items);
+    free_items(array);
 
     return true;
 }

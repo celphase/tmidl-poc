@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,7 @@ typedef struct api_item_t
     char *name;
     char *doc;
     api_function_t **functions;
-    int functions_count;
+    size_t functions_count;
 } api_item_t;
 
 typedef struct tmidl_callbacks_i

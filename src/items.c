@@ -9,10 +9,10 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs)
     api_item_t *item = malloc(sizeof(api_item_t));
     item->type = ITEM_OPAQUE;
     item->name = malloc(strlen(xs[0]) + 1);
+    strcpy(item->name, xs[0]);
     item->doc = NULL;
     item->functions = NULL;
     item->functions_count = 0;
-    strcpy(item->name, xs[0]);
 
     mpcf_all_free(n, xs);
     return item;
@@ -62,8 +62,8 @@ static mpc_val_t *fold_interface(int n, mpc_val_t **xs)
 
     item->type = ITEM_INTERFACE;
     item->name = malloc(strlen(xs[4]) + 1);
-    item->doc = NULL;
     strcpy(item->name, xs[4]);
+    item->doc = NULL;
 
     util_array_t *array = xs[2];
     item->functions = array->ptr;
