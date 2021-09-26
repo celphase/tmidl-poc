@@ -12,6 +12,7 @@ endif()
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    add_compile_options(/wd4996)
 endif()
 
 # MPC parsing library dependency

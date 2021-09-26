@@ -4,7 +4,7 @@
 #include "items.h"
 #include "mpc_utils.h"
 
-static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
+static mpc_val_t *fold_opaque(int n, mpc_val_t **xs)
 {
     api_item_t *item = malloc(sizeof(api_item_t));
     item->type = ITEM_OPAQUE;
@@ -14,7 +14,7 @@ static mpc_val_t *fold_opaque(int n, mpc_val_t **xs, int x)
     item->functions_count = 0;
     strcpy(item->name, xs[0]);
 
-    mpcf_all_free(n, xs, x);
+    mpcf_all_free(n, xs);
     return item;
 }
 
