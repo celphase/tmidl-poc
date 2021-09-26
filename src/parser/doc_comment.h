@@ -1,5 +1,5 @@
 #pragma once
 
-#include "types.h"
+#include "../types.h"
 
 mpc_parser_t *doc_comment();

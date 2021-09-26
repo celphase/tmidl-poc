@@ -27,12 +27,13 @@ set_property(TARGET vendor_mpc PROPERTY C_STANDARD 11)
 
 add_library(tmidl STATIC
     headers/tmidl.h
-    src/doc_comment.c
-    src/doc_comment.h
-    src/items.c
-    src/items.h
-    src/mpc_utils.h
+    src/parser/doc_comment.c
+    src/parser/doc_comment.h
+    src/parser/items.c
+    src/parser/items.h
+    src/parser/mpc_utils.h
     src/tmidl.c
+    src/types.h
 )
 set_property(TARGET tmidl PROPERTY C_STANDARD 11)
 

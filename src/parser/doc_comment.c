@@ -9,13 +9,8 @@ mpc_val_t *apply_comment_line(mpc_val_t *x)
 
 mpc_parser_t *doc_comment()
 {
-    mpc_parser_t *comment_char = mpc_and(
-        2, mpcf_snd_free,
-        mpc_not(any_newline(), free),
-        mpc_any(),
-        free);
     mpc_parser_t *comment_contents = mpc_apply(
-        mpc_many(mpcf_strfold, comment_char),
+        until_eol(),
         apply_comment_line);
 
     mpc_parser_t *comment_line = mpc_and(

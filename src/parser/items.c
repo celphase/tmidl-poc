@@ -4,15 +4,6 @@
 #include "items.h"
 #include "mpc_utils.h"
 
-static mpc_parser_t *until_eol()
-{
-    mpc_parser_t *not_newline = mpc_and(
-        2, mpcf_snd,
-        mpc_not(any_newline(), free), mpc_any(),
-        free);
-    return mpc_many(mpcf_strfold, not_newline);
-}
-
 static mpc_parser_t *include_item()
 {
     return mpc_and(
@@ -39,7 +30,7 @@ static mpc_parser_t *opaque_item()
 {
     return mpc_and(
         3, fold_opaque,
-        td_struct(), mpc_strip(identifier()), mpc_char(';'),
+        tydef_struct_tok(), mpc_strip(identifier()), mpc_char(';'),
         free, free);
 }
 
@@ -108,7 +99,7 @@ static mpc_parser_t *interface_item()
 
     return mpc_and(
         6, fold_interface,
-        td_struct(), mpc_tok(mpc_char('{')), fields, mpc_tok(mpc_char('}')),
+        tydef_struct_tok(), mpc_tok(mpc_char('{')), fields, mpc_tok(mpc_char('}')),
         mpc_tok(identifier()), mpc_char(';'),
         free, free, free_fields, free, free);
 }

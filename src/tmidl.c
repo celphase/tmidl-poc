@@ -1,8 +1,8 @@
 #include <tmidl.h>
 
 #include "types.h"
-#include "items.h"
-#include "mpc_utils.h"
+#include "parser/items.h"
+#include "parser/mpc_utils.h"
 
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 {
