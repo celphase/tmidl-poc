@@ -1,7 +1,7 @@
 #pragma once
 
 typedef struct tmidl_callbacks_i tmidl_callbacks_i;
-typedef struct api_item_t api_item_t;
+typedef struct api_declaration_t api_declaration_t;
 
 typedef void mpc_val_t;
 typedef struct mpc_parser_t mpc_parser_t;

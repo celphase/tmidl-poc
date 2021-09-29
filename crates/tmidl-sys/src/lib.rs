@@ -1,8 +1,8 @@
 use std::{ffi::c_void, os::raw::c_char};
 
 #[repr(C)]
-pub struct ApiItem {
-    pub ty_: ApiItemType,
+pub struct ApiDeclaration {
+    pub ty_: ApiDeclarationType,
     pub name: *const c_char,
     pub doc: *const c_char,
     pub functions: *const *const ApiFunction,
@@ -10,7 +10,7 @@ pub struct ApiItem {
 }
 
 #[repr(C)]
-pub enum ApiItemType {
+pub enum ApiDeclarationType {
     Opaque,
     Interface,
 }
@@ -22,7 +22,8 @@ pub struct ApiFunction {
 
 #[repr(C)]
 pub struct Callbacks {
-    pub on_item: unsafe extern "C" fn(item: *const ApiItem, user_context: *mut c_void),
+    pub on_declaration:
+        unsafe extern "C" fn(declaration: *const ApiDeclaration, user_context: *mut c_void),
     pub on_error:
         unsafe extern "C" fn(message: *const c_char, position: i64, user_context: *mut c_void),
 }
