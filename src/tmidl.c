@@ -25,7 +25,6 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     util_array_t *array = r.output;
     c_item_t **items = array->ptr;
 
-    printf("A\n");
     for (int i = 0; i < array->count; i++)
     {
         c_item_t *item = items[i];
