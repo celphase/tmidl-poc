@@ -20,6 +20,18 @@ using naming convention, preprocessor directives, and macros to provide addition
 It can be used to generate bindings for other languages, and to generate documentation.
 Additionally it is also a linter to ensure APIs conform to The Machinery code conventions.
 
+# Isomorphism
+
+TMIDL is isomorphic with C11, meaning all valid TMIDL can be compiled as C code for the purpose of
+using a described API.
+However, the inverse is not true, not all valid C11 code is valid TMIDL.
+
+In addition to some language features not being supported, TMIDL treats preprocessor directives and
+macros as relevant metadata, and will for this reason parse them syntactically at the same time as
+the rest of the code.
+These are used as metadata information necessary to generate correct bindings.
+However, this means not all C preprocessor tricks can be supported.
+
 ## License
 
 Licensed under either of

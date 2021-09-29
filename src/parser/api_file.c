@@ -1,7 +1,7 @@
 #include <tmidl.h>
 
+#include "api_file.h"
 #include "doc_comment.h"
-#include "items.h"
 #include "mpc_utils.h"
 
 static mpc_parser_t *include_item()
@@ -125,7 +125,7 @@ static mpc_val_t *fold_commented_item(int n, mpc_val_t **xs)
     return item;
 }
 
-mpc_parser_t *any_item()
+static mpc_parser_t *any_item()
 {
     mpc_parser_t *any_item = mpc_or(3, include_item(), opaque_item(), interface_item());
     return mpc_and(
@@ -134,7 +134,7 @@ mpc_parser_t *any_item()
         free);
 }
 
-void free_item(api_item_t *item)
+static void free_item(api_item_t *item)
 {
     free(item->name);
     free(item->doc);
@@ -149,4 +149,61 @@ void free_item(api_item_t *item)
     }
 
     free(item);
+}
+
+static mpc_val_t *fold_items(int n, mpc_val_t **xs)
+{
+    util_array_t *array = malloc(sizeof(util_array_t));
+    array->count = 0;
+
+    // Count the items
+    for (int i = 0; i < n; i++)
+    {
+        if (xs[i] != NULL)
+        {
+            array->count += 1;
+        }
+    }
+
+    // Allocate the array
+    api_item_t **items = malloc(sizeof(api_item_t) * array->count);
+    array->ptr = items;
+    int items_i = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (xs[i] != NULL)
+        {
+            items[items_i] = xs[i];
+            items_i += 1;
+        }
+    }
+
+    return array;
+}
+
+void free_items(util_array_t *array)
+{
+    api_item_t **items = array->ptr;
+    for (int i = 0; i < array->count; i++)
+    {
+        free_item(items[i]);
+    }
+    free(array);
+}
+
+static mpc_parser_t *api_content()
+{
+    // TODO: Use "declarations" which are later translated to API items
+    return mpc_many(fold_items, mpc_strip(any_item()));
+}
+
+mpc_parser_t *api_file() {
+    mpc_parser_t *pragma_once = mpc_and(
+        2, mpcf_all_free,
+        mpc_string("#pragma once"), any_newline(),
+        free);
+
+    return mpc_whole(
+        mpc_and(2, mpcf_snd_free, pragma_once, api_content(), free),
+        free_items);
 }
