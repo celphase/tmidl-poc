@@ -8,7 +8,8 @@ typedef enum c_storage_class_t {
 } c_storage_class_t;
 
 typedef struct c_type_specifier_struct_t {
-    char *name;
+    const char *name;
+    long name_position;
 } c_type_specifier_struct_t;
 
 typedef struct c_declaration_t {
@@ -16,7 +17,6 @@ typedef struct c_declaration_t {
     c_storage_class_t storage_class;
     c_type_specifier_struct_t *type_specifier;
     const char *declarator;
-    long declarator_pos;
 } c_declaration_t;
 
 void free_declaration(c_declaration_t *declaration);

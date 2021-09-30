@@ -60,6 +60,7 @@ unsafe extern "C" fn on_diagnostic(
     let message = CStr::from_ptr((*diagnostic).message);
 
     let diagnostic = Diagnostic {
+        is_error: (*diagnostic).level == tmidl_sys::Level::Error,
         message: message.to_string_lossy().to_string(),
         position_start: (*diagnostic).position_start as usize,
         position_end: (*diagnostic).position_end as usize,
@@ -100,6 +101,7 @@ struct DeclarationMeta {
 }
 
 pub struct Diagnostic {
+    pub is_error: bool,
     pub message: String,
     pub position_start: usize,
     pub position_end: usize,

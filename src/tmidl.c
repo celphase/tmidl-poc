@@ -5,7 +5,7 @@
 #include "parser/mpc_utils.h"
 #include "parser/c_declaration.h"
 
-static void validate_declaration(
+static bool validate_declaration(
     c_declaration_t *declaration,
     const tmidl_callbacks_i *callbacks,
     void *user_context)
@@ -16,12 +16,13 @@ static void validate_declaration(
     {
         tmidl_diagnostic_t diagnostic;
         diagnostic.level = TMIDL_LEVEL_WARNING;
-        diagnostic.message = "The type specifier name and declarator must be the same.";
-        diagnostic.position_start = declaration->declarator_pos;
-        diagnostic.position_end = declaration->declarator_pos + strlen(declaration->declarator);
-        callbacks->on_diagnostic(&diagnostic, user_context);
+        diagnostic.message = "The type specifier name must be the same as the declarator.";
 
-        success = false;
+        long position = declaration->type_specifier->name_position;
+        diagnostic.position_start = position;
+        diagnostic.position_end = position + strlen(declaration->type_specifier->name);
+
+        callbacks->on_diagnostic(&diagnostic, user_context);
     }
 
     return success;
@@ -62,7 +63,10 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
             c_item_declaration_t *item_declaration = item;
             c_declaration_t *c_declaration = item_declaration->declaration;
 
-            validate_declaration(c_declaration, callbacks, user_context);
+            if (!validate_declaration(c_declaration, callbacks, user_context))
+            {
+                continue;
+            }
 
             tmidl_declaration_t declaration;
             declaration.type = ITEM_OPAQUE;

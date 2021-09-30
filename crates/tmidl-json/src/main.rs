@@ -1,7 +1,7 @@
 mod wrapper;
 
 use codespan_reporting::{
-    diagnostic::{Diagnostic, Label},
+    diagnostic::{Diagnostic, Label, Severity},
     files::SimpleFiles,
     term::{
         self,
@@ -40,7 +40,13 @@ fn print_diagnostics(diagnostics: Vec<TmidlDiagnostic>, input_str: String) {
     let file_id = files.add("input.h", input_str);
 
     for diagnostic in diagnostics {
-        let diagnostic = Diagnostic::error()
+        let severity = if diagnostic.is_error {
+            Severity::Error
+        } else {
+            Severity::Warning
+        };
+
+        let diagnostic = Diagnostic::new(severity)
             .with_message(diagnostic.message.clone())
             .with_labels(vec![Label::primary(
                 file_id,

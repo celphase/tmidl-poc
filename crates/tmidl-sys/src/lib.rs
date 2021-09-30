@@ -29,6 +29,7 @@ pub struct Diagnostic {
 }
 
 #[repr(C)]
+#[derive(PartialEq, Eq)]
 pub enum Level {
     Warning,
     Error,

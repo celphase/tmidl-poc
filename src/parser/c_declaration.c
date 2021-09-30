@@ -4,11 +4,15 @@
 
 static mpc_val_t *fold_type_specifier_struct(int n, mpc_val_t **xs)
 {
+    mpc_state_t *state = xs[1];
+
     c_type_specifier_struct_t *type_specifier = malloc(sizeof(c_type_specifier_struct_t));
-    type_specifier->name = xs[1];
+    type_specifier->name = xs[2];
+    type_specifier->name_position = state->pos;
 
     free(xs[0]);
-    free(xs[2]);
+    free(xs[1]);
+    free(xs[3]);
 
     return type_specifier;
 }
@@ -24,9 +28,12 @@ static mpc_parser_t *type_specifier_struct_parser()
         free, free);
 
     return mpc_and(
-        3, fold_type_specifier_struct,
-        struct_tok, mpc_tok(identifier()), mpc_maybe(body),
-        free, free);
+        4, fold_type_specifier_struct,
+        struct_tok,
+        // Name
+        mpc_state(), mpc_tok(identifier()),
+        mpc_maybe(body),
+        free, free, free);
 }
 
 void free_declaration(c_declaration_t *declaration)
@@ -46,8 +53,7 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
     declaration->doc = xs[0];
     declaration->storage_class = C_STORAGE_CLASS_NONE;
     declaration->type_specifier = xs[2];
-    declaration->declarator = xs[4];
-    declaration->declarator_pos = state->pos;
+    declaration->declarator = xs[3];
 
     if (declaration->doc == NULL)
     {
@@ -57,8 +63,7 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
     }
 
     free(xs[1]);
-    free(xs[3]);
-    free(xs[5]);
+    free(xs[4]);
 
     return declaration;
 }
@@ -69,15 +74,15 @@ mpc_parser_t *declaration_parser()
 
     // While C allows specifiers in any order, TMIDL enforces an order.
     return mpc_and(
-        6, fold_declaration,
+        5, fold_declaration,
         mpc_maybe(doc_comment_parser()),
         // Storage class specifier
         mpc_maybe(typedef_tok),
         type_specifier_struct_parser(),
         // Declarator
-        mpc_state(), mpc_tok(identifier()),
+        mpc_tok(identifier()),
         mpc_tok(mpc_char(';')),
-        free, free, free, free, free);
+        free, free, free, free);
 }
 
 struct Foo
