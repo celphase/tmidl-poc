@@ -80,12 +80,28 @@ static mpc_parser_t *type_specifier_struct_parser()
         free, free, free);
 }
 
+static void free_type_specifier(c_type_specifier_struct_t *type_specifier)
+{
+    free(type_specifier->name);
+
+    if (type_specifier->declarations != NULL)
+    {
+        char **declarations = type_specifier->declarations->ptr;
+        for (int i = 0; i < type_specifier->declarations->count; i++)
+        {
+            free(declarations[i]);
+        }
+        free(type_specifier->declarations);
+    }
+
+    free(type_specifier);
+}
+
 void free_declaration(c_declaration_t *declaration)
 {
     free(declaration->doc);
     free(declaration->declarator);
-    free(declaration->type_specifier->name);
-    free(declaration->type_specifier);
+    free_type_specifier(declaration->type_specifier);
     free(declaration);
 }
 
