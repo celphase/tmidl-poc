@@ -35,7 +35,7 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
 
             api_declaration_t api_item;
             api_item.type = ITEM_OPAQUE;
-            api_item.name = item_declaration->declaration->name;
+            api_item.name = item_declaration->declaration->declarator;
             api_item.doc = item_declaration->declaration->doc;
             api_item.functions = NULL;
             api_item.functions_count = 0;

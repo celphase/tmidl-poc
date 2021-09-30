@@ -2,39 +2,19 @@
 #include "mpc_utils.h"
 #include "doc_comment.h"
 
-void free_declaration(c_declaration_t *declaration)
+static mpc_val_t *fold_type_specifier_struct(int n, mpc_val_t **xs)
 {
-    free(declaration->name);
-    free(declaration->doc);
-    free(declaration);
-}
+    c_type_specifier_struct_t *type_specifier = malloc(sizeof(c_type_specifier_struct_t));
+    type_specifier->name = xs[1];
 
-static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
-{
-    c_declaration_t *declaration = malloc(sizeof(c_declaration_t));
-
-    declaration->storage_class = C_STORAGE_CLASS_NONE;
-    declaration->name = xs[3];
-    declaration->doc = xs[0];
-
-    if (declaration->doc == NULL)
-    {
-        declaration->doc = malloc(1);
-        declaration->doc[0] = '\0';
-    }
-
-    free(xs[1]);
+    free(xs[0]);
     free(xs[2]);
-    free(xs[4]);
-    free(xs[5]);
-    free(xs[6]);
 
-    return declaration;
+    return type_specifier;
 }
 
-mpc_parser_t *declaration_parser()
+static mpc_parser_t *type_specifier_struct_parser()
 {
-    mpc_parser_t *typedef_tok = mpc_tok(mpc_string("typedef"));
     mpc_parser_t *struct_tok = mpc_tok(mpc_string("struct"));
 
     mpc_parser_t *body_c = mpc_and(2, mpcf_all_free, mpc_not(mpc_char('}'), free), mpc_any(), free);
@@ -44,13 +24,60 @@ mpc_parser_t *declaration_parser()
         free, free);
 
     return mpc_and(
-        7, fold_declaration,
-        mpc_maybe(doc_comment_parser()), mpc_maybe(typedef_tok), struct_tok,
-        // Type specifier's name
-        mpc_tok(identifier()),
-        mpc_maybe(body),
+        3, fold_type_specifier_struct,
+        struct_tok, mpc_tok(identifier()), mpc_maybe(body),
+        free, free);
+}
+
+void free_declaration(c_declaration_t *declaration)
+{
+    free(declaration->doc);
+    free(declaration->declarator);
+    free(declaration->type_specifier->name);
+    free(declaration->type_specifier);
+    free(declaration);
+}
+
+static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
+{
+    c_declaration_t *declaration = malloc(sizeof(c_declaration_t));
+
+    declaration->doc = xs[0];
+    declaration->storage_class = C_STORAGE_CLASS_NONE;
+    declaration->type_specifier = xs[2];
+    declaration->declarator = xs[3];
+
+    if (declaration->doc == NULL)
+    {
+        char *doc = malloc(1);
+        doc[0] = '\0';
+        declaration->doc = doc;
+    }
+
+    free(xs[1]);
+    free(xs[4]);
+
+    return declaration;
+}
+
+mpc_parser_t *declaration_parser()
+{
+    mpc_parser_t *typedef_tok = mpc_tok(mpc_string("typedef"));
+
+    // While C allows specifiers in any order, TMIDL enforces an order.
+    return mpc_and(
+        5, fold_declaration,
+        mpc_maybe(doc_comment_parser()),
+        // Storage class specifier
+        mpc_maybe(typedef_tok),
+        type_specifier_struct_parser(),
         // Declarator
         mpc_tok(identifier()),
         mpc_tok(mpc_char(';')),
-        free, free, free, free, free, free);
+        free, free, free, free);
 }
+
+struct Foo
+{
+    int a;
+} typedef const foo;
