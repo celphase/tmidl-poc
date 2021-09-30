@@ -22,8 +22,8 @@ fn main() {
 
     let mut context = Context::default();
     let callbacks = Callbacks {
-        on_declaration: on_item,
-        on_error,
+        on_declaration,
+        on_diagnostic,
     };
 
     let result =
@@ -35,7 +35,7 @@ fn main() {
         let mut files = SimpleFiles::new();
         let file_id = files.add("input.h", input_str);
 
-        for (message, position) in context.errors {
+        for (message, position) in context.diagnostics {
             let diagnostic = Diagnostic::error()
                 .with_message(message.clone())
                 .with_labels(vec![
@@ -54,8 +54,8 @@ unsafe fn c_to_string(c_str: *const c_char) -> String {
     CStr::from_ptr(c_str).to_str().unwrap().to_owned()
 }
 
-unsafe extern "C" fn on_item(
-    declaration: *const tmidl_sys::ApiDeclaration,
+unsafe extern "C" fn on_declaration(
+    declaration: *const tmidl_sys::Declaration,
     user_context: *mut c_void,
 ) {
     let context = &mut *(user_context as *mut Context);
@@ -72,25 +72,29 @@ unsafe extern "C" fn on_item(
     }
 
     let item = match (*declaration).ty_ {
-        tmidl_sys::ApiDeclarationType::Opaque => ApiDeclaration::Opaque { meta },
-        tmidl_sys::ApiDeclarationType::Interface => ApiDeclaration::Interface { meta, functions },
+        tmidl_sys::DeclarationType::Opaque => ApiDeclaration::Opaque { meta },
+        tmidl_sys::DeclarationType::Interface => ApiDeclaration::Interface { meta, functions },
     };
 
     context.api_file.declarations.push(item);
 }
 
-unsafe extern "C" fn on_error(message: *const c_char, position: i64, user_context: *mut c_void) {
+unsafe extern "C" fn on_diagnostic(
+    diagnostic: *const tmidl_sys::Diagnostic,
+    user_context: *mut c_void,
+) {
     let context = &mut *(user_context as *mut Context);
-    let message = CStr::from_ptr(message);
+    let message = CStr::from_ptr((*diagnostic).message);
 
-    context
-        .errors
-        .push((message.to_string_lossy().to_string(), position as usize));
+    context.diagnostics.push((
+        message.to_string_lossy().to_string(),
+        (*diagnostic).position as usize,
+    ));
 }
 
 #[derive(Default)]
 struct Context {
-    errors: Vec<(String, usize)>,
+    diagnostics: Vec<(String, usize)>,
     api_file: ApiFile,
 }
 

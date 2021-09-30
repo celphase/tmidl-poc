@@ -14,7 +14,12 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
     if (!success)
     {
         char *message = mpc_err_string(r.error);
-        callbacks->on_error(message, r.error->state.pos, user_context);
+
+        tmidl_diagnostic_t diagnostic;
+        diagnostic.level = TMIDL_LEVEL_ERROR;
+        diagnostic.message = message;
+        diagnostic.position = r.error->state.pos;
+        callbacks->on_diagnostic(&diagnostic, user_context);
 
         free(message);
         mpc_err_delete(r.error);
@@ -33,14 +38,14 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         {
             c_item_declaration_t *item_declaration = item;
 
-            api_declaration_t api_item;
-            api_item.type = ITEM_OPAQUE;
-            api_item.name = item_declaration->declaration->declarator;
-            api_item.doc = item_declaration->declaration->doc;
-            api_item.functions = NULL;
-            api_item.functions_count = 0;
+            tmidl_declaration_t declaration;
+            declaration.type = ITEM_OPAQUE;
+            declaration.name = item_declaration->declaration->declarator;
+            declaration.doc = item_declaration->declaration->doc;
+            declaration.functions = NULL;
+            declaration.functions_count = 0;
 
-            callbacks->on_declaration(&api_item, user_context);
+            callbacks->on_declaration(&declaration, user_context);
         }
     }
 

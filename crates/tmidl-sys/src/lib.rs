@@ -1,31 +1,44 @@
 use std::{ffi::c_void, os::raw::c_char};
 
 #[repr(C)]
-pub struct ApiDeclaration {
-    pub ty_: ApiDeclarationType,
+pub struct Declaration {
+    pub ty_: DeclarationType,
     pub name: *const c_char,
     pub doc: *const c_char,
-    pub functions: *const *const ApiFunction,
+    pub functions: *const *const Function,
     pub function_count: i32,
 }
 
 #[repr(C)]
-pub enum ApiDeclarationType {
+pub enum DeclarationType {
     Opaque,
     Interface,
 }
 
 #[repr(C)]
-pub struct ApiFunction {
+pub struct Function {
     pub name: *const c_char,
+}
+
+#[repr(C)]
+pub struct Diagnostic {
+    pub level: Level,
+    pub message: *const c_char,
+    pub position: i64,
+}
+
+#[repr(C)]
+pub enum Level {
+    Warning,
+    Error,
 }
 
 #[repr(C)]
 pub struct Callbacks {
     pub on_declaration:
-        unsafe extern "C" fn(declaration: *const ApiDeclaration, user_context: *mut c_void),
-    pub on_error:
-        unsafe extern "C" fn(message: *const c_char, position: i64, user_context: *mut c_void),
+        unsafe extern "C" fn(declaration: *const Declaration, user_context: *mut c_void),
+    pub on_diagnostic:
+        unsafe extern "C" fn(diagnostic: *const Diagnostic, user_context: *mut c_void),
 }
 
 extern "C" {
