@@ -1,7 +1,4 @@
-use std::{
-    ffi::{c_void, CStr, CString},
-    os::raw::c_char,
-};
+mod wrapper;
 
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
@@ -11,114 +8,43 @@ use codespan_reporting::{
         termcolor::{ColorChoice, StandardStream},
     },
 };
-use serde::Serialize;
 
-use tmidl_sys::{parse_tmidl, Callbacks};
+use crate::wrapper::parse_tmidl;
 
 fn main() {
     let input_path = std::env::args().nth(1).unwrap();
-    let input_str = std::fs::read_to_string(input_path).unwrap();
-    let input = CString::new(input_str.clone()).unwrap();
+    let input = std::fs::read_to_string(input_path).unwrap();
 
-    let mut context = Context::default();
-    let callbacks = Callbacks {
-        on_declaration,
-        on_diagnostic,
-    };
+    let (result, diagnostics) = parse_tmidl(&input);
 
-    let result =
-        unsafe { parse_tmidl(input.as_ptr(), &callbacks, &mut context as *mut _ as *mut _) };
-
-    if !result {
-        let writer = StandardStream::stderr(ColorChoice::Always);
-        let config = codespan_reporting::term::Config::default();
-        let mut files = SimpleFiles::new();
-        let file_id = files.add("input.h", input_str);
-
-        for (message, position) in context.diagnostics {
-            let diagnostic = Diagnostic::error()
-                .with_message(message.clone())
-                .with_labels(vec![
-                    Label::primary(file_id, position..(position + 1)).with_message(message)
-                ]);
-            term::emit(&mut writer.lock(), &config, &files, &diagnostic).unwrap();
-        }
-        return;
+    // Print messages if there are any
+    if !diagnostics.is_empty() {
+        print_diagnostics(diagnostics, input);
+        std::process::exit(1);
     }
 
-    let json = serde_json::to_string_pretty(&context.api_file).unwrap();
+    let api_file = if let Some(api_file) = result {
+        api_file
+    } else {
+        std::process::exit(1);
+    };
+
+    let json = serde_json::to_string_pretty(&api_file).unwrap();
     println!("{}", json);
 }
 
-unsafe fn c_to_string(c_str: *const c_char) -> String {
-    CStr::from_ptr(c_str).to_str().unwrap().to_owned()
-}
+fn print_diagnostics(diagnostics: Vec<(String, usize)>, input_str: String) {
+    let writer = StandardStream::stderr(ColorChoice::Always);
+    let config = codespan_reporting::term::Config::default();
+    let mut files = SimpleFiles::new();
+    let file_id = files.add("input.h", input_str);
 
-unsafe extern "C" fn on_declaration(
-    declaration: *const tmidl_sys::Declaration,
-    user_context: *mut c_void,
-) {
-    let context = &mut *(user_context as *mut Context);
-
-    let meta = ApiDeclarationMeta {
-        name: c_to_string((*declaration).name),
-        doc: c_to_string((*declaration).doc),
-    };
-
-    let mut functions = Vec::new();
-    for i in 0..(*declaration).function_count {
-        let fnptr = *(*declaration).functions.offset(i as isize);
-        functions.push(c_to_string((*fnptr).name));
+    for (message, position) in diagnostics {
+        let diagnostic = Diagnostic::error()
+            .with_message(message.clone())
+            .with_labels(vec![
+                Label::primary(file_id, position..(position + 1)).with_message(message)
+            ]);
+        term::emit(&mut writer.lock(), &config, &files, &diagnostic).unwrap();
     }
-
-    let item = match (*declaration).ty_ {
-        tmidl_sys::DeclarationType::Opaque => ApiDeclaration::Opaque { meta },
-        tmidl_sys::DeclarationType::Interface => ApiDeclaration::Interface { meta, functions },
-    };
-
-    context.api_file.declarations.push(item);
-}
-
-unsafe extern "C" fn on_diagnostic(
-    diagnostic: *const tmidl_sys::Diagnostic,
-    user_context: *mut c_void,
-) {
-    let context = &mut *(user_context as *mut Context);
-    let message = CStr::from_ptr((*diagnostic).message);
-
-    context.diagnostics.push((
-        message.to_string_lossy().to_string(),
-        (*diagnostic).position as usize,
-    ));
-}
-
-#[derive(Default)]
-struct Context {
-    diagnostics: Vec<(String, usize)>,
-    api_file: ApiFile,
-}
-
-#[derive(Default, Serialize)]
-struct ApiFile {
-    declarations: Vec<ApiDeclaration>,
-}
-
-#[derive(Serialize)]
-#[serde(tag = "type")]
-enum ApiDeclaration {
-    Opaque {
-        #[serde(flatten)]
-        meta: ApiDeclarationMeta,
-    },
-    Interface {
-        #[serde(flatten)]
-        meta: ApiDeclarationMeta,
-        functions: Vec<String>,
-    },
-}
-
-#[derive(Serialize)]
-struct ApiDeclarationMeta {
-    name: String,
-    doc: String,
 }
