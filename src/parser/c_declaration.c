@@ -33,12 +33,17 @@ static mpc_parser_t *field_parser()
 
 static mpc_val_t *fold_body(int n, mpc_val_t **xs)
 {
-    for (int i = 0; i < n; i++) {
-        printf("Field: %s\n", xs[i]);
-        free(xs[i]);
+    char **declarations = malloc(sizeof(size_t) * n);
+
+    for (int i = 0; i < n; i++)
+    {
+        declarations[i] = xs[i];
     }
 
-    return NULL;
+    util_array_t *array = malloc(sizeof(util_array_t));
+    array->count = n;
+    array->ptr = declarations;
+    return array;
 }
 
 static mpc_parser_t *body_parser()
@@ -54,10 +59,10 @@ static mpc_val_t *fold_type_specifier_struct(int n, mpc_val_t **xs)
     c_type_specifier_struct_t *type_specifier = malloc(sizeof(c_type_specifier_struct_t));
     type_specifier->name = xs[2];
     type_specifier->name_position = state->pos;
+    type_specifier->declarations = xs[3];
 
     free(xs[0]);
     free(xs[1]);
-    free(xs[3]);
 
     return type_specifier;
 }
