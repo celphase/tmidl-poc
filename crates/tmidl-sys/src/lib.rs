@@ -24,7 +24,8 @@ pub struct Function {
 pub struct Diagnostic {
     pub level: Level,
     pub message: *const c_char,
-    pub position: i64,
+    pub position_start: i32,
+    pub position_end: i32,
 }
 
 #[repr(C)]

@@ -5,6 +5,28 @@
 #include "parser/mpc_utils.h"
 #include "parser/c_declaration.h"
 
+static void validate_declaration(
+    c_declaration_t *declaration,
+    const tmidl_callbacks_i *callbacks,
+    void *user_context)
+{
+    bool success = true;
+
+    if (strcmp(declaration->declarator, declaration->type_specifier->name) != 0)
+    {
+        tmidl_diagnostic_t diagnostic;
+        diagnostic.level = TMIDL_LEVEL_WARNING;
+        diagnostic.message = "The type specifier name and declarator must be the same.";
+        diagnostic.position_start = declaration->declarator_pos;
+        diagnostic.position_end = declaration->declarator_pos + strlen(declaration->declarator);
+        callbacks->on_diagnostic(&diagnostic, user_context);
+
+        success = false;
+    }
+
+    return success;
+}
+
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
 {
     // Parse the input
@@ -18,7 +40,8 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         tmidl_diagnostic_t diagnostic;
         diagnostic.level = TMIDL_LEVEL_ERROR;
         diagnostic.message = message;
-        diagnostic.position = r.error->state.pos;
+        diagnostic.position_start = r.error->state.pos;
+        diagnostic.position_end = r.error->state.pos + 1;
         callbacks->on_diagnostic(&diagnostic, user_context);
 
         free(message);
@@ -37,11 +60,14 @@ bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *us
         if (item->type == C_ITEM_TYPE_DECLARATION)
         {
             c_item_declaration_t *item_declaration = item;
+            c_declaration_t *c_declaration = item_declaration->declaration;
+
+            validate_declaration(c_declaration, callbacks, user_context);
 
             tmidl_declaration_t declaration;
             declaration.type = ITEM_OPAQUE;
-            declaration.name = item_declaration->declaration->declarator;
-            declaration.doc = item_declaration->declaration->doc;
+            declaration.name = c_declaration->declarator;
+            declaration.doc = c_declaration->doc;
             declaration.functions = NULL;
             declaration.functions_count = 0;
 

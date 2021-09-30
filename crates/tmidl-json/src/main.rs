@@ -9,7 +9,7 @@ use codespan_reporting::{
     },
 };
 
-use crate::wrapper::parse_tmidl;
+use crate::wrapper::{parse_tmidl, Diagnostic as TmidlDiagnostic};
 
 fn main() {
     let input_path = std::env::args().nth(1).unwrap();
@@ -33,18 +33,20 @@ fn main() {
     println!("{}", json);
 }
 
-fn print_diagnostics(diagnostics: Vec<(String, usize)>, input_str: String) {
+fn print_diagnostics(diagnostics: Vec<TmidlDiagnostic>, input_str: String) {
     let writer = StandardStream::stderr(ColorChoice::Always);
     let config = codespan_reporting::term::Config::default();
     let mut files = SimpleFiles::new();
     let file_id = files.add("input.h", input_str);
 
-    for (message, position) in diagnostics {
+    for diagnostic in diagnostics {
         let diagnostic = Diagnostic::error()
-            .with_message(message.clone())
-            .with_labels(vec![
-                Label::primary(file_id, position..(position + 1)).with_message(message)
-            ]);
+            .with_message(diagnostic.message.clone())
+            .with_labels(vec![Label::primary(
+                file_id,
+                diagnostic.position_start..diagnostic.position_end,
+            )
+            .with_message(diagnostic.message)]);
         term::emit(&mut writer.lock(), &config, &files, &diagnostic).unwrap();
     }
 }

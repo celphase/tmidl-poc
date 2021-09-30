@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,12 +38,13 @@ typedef struct tmidl_diagnostic_t
 {
     tmidl_level_t level;
     const char *message;
-    long position;
+    uint32_t position_start;
+    uint32_t position_end;
 } tmidl_diagnostic_t;
 
 typedef struct tmidl_callbacks_i
 {
-    void (*on_declaration)(const tmidl_declaration_t *item, void *user_context);
+    void (*on_declaration)(const tmidl_declaration_t *declaration, void *user_context);
     void (*on_diagnostic)(const tmidl_diagnostic_t *diagnostic, void *user_context);
 } tmidl_callbacks_i;
 

@@ -5,7 +5,7 @@ use std::{
 
 use serde::Serialize;
 
-pub fn parse_tmidl(input: &str) -> (Option<ApiFile>, Vec<(String, usize)>) {
+pub fn parse_tmidl(input: &str) -> (Option<ApiFile>, Vec<Diagnostic>) {
     let input = CString::new(input).unwrap();
 
     let mut context = Context::default();
@@ -59,15 +59,18 @@ unsafe extern "C" fn on_diagnostic(
     let context = &mut *(user_context as *mut Context);
     let message = CStr::from_ptr((*diagnostic).message);
 
-    context.diagnostics.push((
-        message.to_string_lossy().to_string(),
-        (*diagnostic).position as usize,
-    ));
+    let diagnostic = Diagnostic {
+        message: message.to_string_lossy().to_string(),
+        position_start: (*diagnostic).position_start as usize,
+        position_end: (*diagnostic).position_end as usize,
+    };
+
+    context.diagnostics.push(diagnostic);
 }
 
 #[derive(Default)]
 struct Context {
-    diagnostics: Vec<(String, usize)>,
+    diagnostics: Vec<Diagnostic>,
     api_file: ApiFile,
 }
 
@@ -94,4 +97,10 @@ enum Declaration {
 struct DeclarationMeta {
     name: String,
     doc: String,
+}
+
+pub struct Diagnostic {
+    pub message: String,
+    pub position_start: usize,
+    pub position_end: usize,
 }
