@@ -101,8 +101,9 @@ static void free_type_specifier(c_type_specifier_struct_t *type_specifier)
 void free_declaration(c_declaration_t *declaration)
 {
     free(declaration->doc);
-    free(declaration->declarator);
     free_type_specifier(declaration->type_specifier);
+    free(declaration->declarator);
+
     free(declaration);
 }
 

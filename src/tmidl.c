@@ -31,8 +31,10 @@ static bool validate_declaration(
 bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context)
 {
     // Parse the input
+    mpc_parser_t *parser = api_file_parser();
     mpc_result_t r;
-    bool success = mpc_parse("input", input, api_file_parser(), &r);
+    bool success = mpc_parse("input", input, parser, &r);
+    mpc_cleanup(1, parser);
 
     if (!success)
     {
