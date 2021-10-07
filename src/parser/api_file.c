@@ -24,7 +24,7 @@ mpc_val_t *apply_declaration(mpc_val_t *value)
 
 static mpc_parser_t *declaration_item()
 {
-    return mpc_apply(declaration_parser(), apply_declaration);
+    return mpc_apply(parse_declaration(), apply_declaration);
 }
 
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
@@ -53,8 +53,10 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     return array;
 }
 
-void free_items(util_array_t *array)
+void free_items(mpc_val_t *value)
 {
+    util_array_t *array = value;
+
     c_item_t **items = array->ptr;
     for (int i = 0; i < array->count; i++) {
         c_item_t *item = items[i];
@@ -68,7 +70,7 @@ void free_items(util_array_t *array)
     free(array);
 }
 
-mpc_parser_t *api_file_parser()
+mpc_parser_t *parse_api_file()
 {
     mpc_parser_t *pragma_once = mpc_and(
         2, mpcf_all_free,

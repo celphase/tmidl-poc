@@ -24,7 +24,7 @@ static mpc_parser_t *field_parser()
 
     return mpc_and(
         5, fold_field,
-        doc_comment_parser(),
+        parse_doc_comment(),
         mpc_many(mpcf_all_free, before),
         mpc_tok_parens(name, free),
         mpc_many(mpcf_all_free, after),
@@ -126,14 +126,14 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
     return declaration;
 }
 
-mpc_parser_t *declaration_parser()
+mpc_parser_t *parse_declaration()
 {
     mpc_parser_t *typedef_tok = mpc_tok(mpc_string("typedef"));
 
     // While C allows specifiers in any order, TMIDL enforces an order.
     return mpc_and(
         5, fold_declaration,
-        mpc_maybe(doc_comment_parser()),
+        mpc_maybe(parse_doc_comment()),
         // Storage class specifier
         mpc_maybe(typedef_tok),
         type_specifier_struct_parser(),

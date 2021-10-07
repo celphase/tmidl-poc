@@ -7,7 +7,7 @@ mpc_val_t *apply_comment_line(mpc_val_t *x)
     return strcat(trimmed, "\n");
 }
 
-mpc_parser_t *doc_comment_parser()
+mpc_parser_t *parse_doc_comment()
 {
     mpc_parser_t *comment_contents = mpc_apply(
         until_eol(),

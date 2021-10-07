@@ -24,4 +24,4 @@ typedef struct c_declaration_t
 
 void free_declaration(c_declaration_t *declaration);
 
-mpc_parser_t *declaration_parser();
+mpc_parser_t *parse_declaration();

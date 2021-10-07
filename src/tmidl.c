@@ -12,7 +12,7 @@ typedef struct tmidl_parser_o
 tmidl_parser_o *tmidl_parser_create()
 {
     tmidl_parser_o *parser = malloc(sizeof(tmidl_parser_o));
-    parser->api_file_parser = api_file_parser();
+    parser->api_file_parser = parse_api_file();
 
     return parser;
 }
@@ -40,6 +40,46 @@ static bool validate_declaration(c_declaration_t *declaration,
     }
 
     return true;
+}
+
+void handle_declaration_item(c_item_declaration_t *item_declaration, const tmidl_callbacks_i *callbacks,
+    void *user_context)
+{
+    c_declaration_t *c_declaration = item_declaration->declaration;
+
+    bool is_interface = c_declaration->type_specifier->declarations != NULL;
+
+    if (!validate_declaration(c_declaration, callbacks, user_context)) {
+        return;
+    }
+
+    tmidl_declaration_t declaration;
+    declaration.type = is_interface ? ITEM_INTERFACE : ITEM_OPAQUE;
+    declaration.name = c_declaration->declarator;
+    declaration.doc = c_declaration->doc;
+    declaration.functions = NULL;
+    declaration.functions_count = 0;
+
+    if (is_interface) {
+        declaration.functions_count = c_declaration->type_specifier->declarations->count;
+        char **declarations = c_declaration->type_specifier->declarations->ptr;
+        declaration.functions = malloc(sizeof(size_t) * declaration.functions_count);
+
+        for (int i = 0; i < declaration.functions_count; i++) {
+            declaration.functions[i] = malloc(sizeof(tmidl_function_t));
+            declaration.functions[i]->name = declarations[i];
+        }
+    }
+
+    callbacks->on_declaration(&declaration, user_context);
+
+    // Clean up
+    if (declaration.functions != NULL) {
+        for (int i = 0; i < declaration.functions_count; i++) {
+            free(declaration.functions[i]);
+        }
+        free(declaration.functions);
+    }
 }
 
 bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_callbacks_i *callbacks,
@@ -72,42 +112,7 @@ bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_c
         c_item_t *item = items[i];
 
         if (item->type == C_ITEM_TYPE_DECLARATION) {
-            c_item_declaration_t *item_declaration = (c_item_declaration_t *)item;
-            c_declaration_t *c_declaration = item_declaration->declaration;
-
-            bool is_interface = c_declaration->type_specifier->declarations != NULL;
-
-            if (!validate_declaration(c_declaration, callbacks, user_context)) {
-                continue;
-            }
-
-            tmidl_declaration_t declaration;
-            declaration.type = is_interface ? ITEM_INTERFACE : ITEM_OPAQUE;
-            declaration.name = c_declaration->declarator;
-            declaration.doc = c_declaration->doc;
-            declaration.functions = NULL;
-            declaration.functions_count = 0;
-
-            if (is_interface) {
-                declaration.functions_count = c_declaration->type_specifier->declarations->count;
-                char **declarations = c_declaration->type_specifier->declarations->ptr;
-                declaration.functions = malloc(sizeof(size_t) * declaration.functions_count);
-
-                for (int i = 0; i < declaration.functions_count; i++) {
-                    declaration.functions[i] = malloc(sizeof(tmidl_function_t));
-                    declaration.functions[i]->name = declarations[i];
-                }
-            }
-
-            callbacks->on_declaration(&declaration, user_context);
-
-            // Clean up
-            if (declaration.functions != NULL) {
-                for (int i = 0; i < declaration.functions_count; i++) {
-                    free(declaration.functions[i]);
-                }
-                free(declaration.functions);
-            }
+            handle_declaration_item((c_item_declaration_t *)item, callbacks, user_context);
         }
     }
 
