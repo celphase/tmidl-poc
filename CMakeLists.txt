@@ -15,18 +15,12 @@ if (MSVC)
     add_compile_options(/wd4996)
 endif ()
 
-# MPC parsing library dependency
-
-add_library(vendor_mpc STATIC
-        vendor/mpc/mpc.c
-        vendor/mpc/mpc.h
-        )
-set_property(TARGET vendor_mpc PROPERTY C_STANDARD 11)
-
 # Main library
 
 add_library(tmidl STATIC
         headers/tmidl.h
+        src/mpc/mpc.c
+        src/mpc/mpc.h
         src/parser/api_file.c
         src/parser/api_file.h
         src/parser/c_declaration.h
@@ -39,8 +33,7 @@ add_library(tmidl STATIC
 set_property(TARGET tmidl PROPERTY C_STANDARD 11)
 
 target_include_directories(tmidl PUBLIC headers)
-target_include_directories(tmidl PRIVATE vendor/mpc)
-target_link_libraries(tmidl PRIVATE vendor_mpc)
+target_include_directories(tmidl PRIVATE src/mpc)
 
 # Example executable
 
@@ -49,4 +42,4 @@ target_link_libraries(tmidl-read PRIVATE tmidl)
 
 # Include static library in install
 
-install(TARGETS tmidl vendor_mpc)
+install(TARGETS tmidl tmidl-read)
