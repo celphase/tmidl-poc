@@ -32,6 +32,18 @@ the rest of the code.
 These are used as metadata information necessary to generate correct bindings.
 However, this means not all C preprocessor tricks can be supported.
 
+# Examples
+
+## tmidl-read
+
+This example reads in a TMIDL file and writes the file's data to console in human-readable form.
+This is not intended to be machine-readable, it's example API usage.
+
+## tmidl-json
+
+This example reads in a TMIDL file and writes the file's data to console in JSON format.
+This is an example of using the TMIDL API from other languages.
+
 ## License
 
 Licensed under either of

@@ -16,15 +16,15 @@ typedef struct tmidl_function_t
 } tmidl_function_t;
 
 typedef enum tmidl_declaration_type_t {
-    ITEM_OPAQUE,
-    ITEM_INTERFACE
+    TMIDL_ITEM_OPAQUE,
+    TMIDL_ITEM_INTERFACE
 } tmidl_declaration_type_t;
 
 typedef struct tmidl_declaration_t
 {
     tmidl_declaration_type_t type;
-    const char *name;
-    const char *doc;
+    char *name;
+    char *doc;
     tmidl_function_t **functions;
     size_t functions_count;
 } tmidl_declaration_t;
@@ -37,7 +37,7 @@ typedef enum tmidl_level_t {
 typedef struct tmidl_diagnostic_t
 {
     tmidl_level_t level;
-    const char *message;
+    char *message;
     uint32_t position_start;
     uint32_t position_end;
 } tmidl_diagnostic_t;

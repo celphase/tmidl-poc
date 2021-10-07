@@ -60,7 +60,7 @@ static void handle_declaration_item(c_item_declaration_t *item_declaration, cons
     }
 
     tmidl_declaration_t declaration;
-    declaration.type = is_interface ? ITEM_INTERFACE : ITEM_OPAQUE;
+    declaration.type = is_interface ? TMIDL_ITEM_INTERFACE : TMIDL_ITEM_OPAQUE;
     declaration.name = c_declaration->declarator;
     declaration.doc = c_declaration->doc;
     declaration.functions = NULL;
