@@ -1,9 +1,9 @@
 #include <tmidl.h>
 
 #include "api_file.h"
+#include "c_declaration.h"
 #include "doc_comment.h"
 #include "mpc_utils.h"
-#include "c_declaration.h"
 
 static mpc_parser_t *include_item()
 {
@@ -33,10 +33,8 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     array->count = 0;
 
     // Count the items
-    for (int i = 0; i < n; i++)
-    {
-        if (xs[i] != NULL)
-        {
+    for (int i = 0; i < n; i++) {
+        if (xs[i] != NULL) {
             array->count += 1;
         }
     }
@@ -45,10 +43,8 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
     c_item_t **items = malloc(sizeof(c_item_t *) * array->count);
     array->ptr = items;
     int items_i = 0;
-    for (int i = 0; i < n; i++)
-    {
-        if (xs[i] != NULL)
-        {
+    for (int i = 0; i < n; i++) {
+        if (xs[i] != NULL) {
             items[items_i] = xs[i];
             items_i += 1;
         }
@@ -60,12 +56,10 @@ static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 void free_items(util_array_t *array)
 {
     c_item_t **items = array->ptr;
-    for (int i = 0; i < array->count; i++)
-    {
+    for (int i = 0; i < array->count; i++) {
         c_item_t *item = items[i];
 
-        if (item->type == C_ITEM_TYPE_DECLARATION)
-        {
+        if (item->type == C_ITEM_TYPE_DECLARATION) {
             free_declaration(((c_item_declaration_t *)item)->declaration);
         }
 

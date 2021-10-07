@@ -13,8 +13,7 @@ typedef struct tmidl_function_t
     char *name;
 } tmidl_function_t;
 
-typedef enum tmidl_declaration_type_t
-{
+typedef enum tmidl_declaration_type_t {
     ITEM_OPAQUE,
     ITEM_INTERFACE
 } tmidl_declaration_type_t;
@@ -28,8 +27,7 @@ typedef struct tmidl_declaration_t
     size_t functions_count;
 } tmidl_declaration_t;
 
-typedef enum tmidl_level_t
-{
+typedef enum tmidl_level_t {
     TMIDL_LEVEL_WARNING,
     TMIDL_LEVEL_ERROR
 } tmidl_level_t;

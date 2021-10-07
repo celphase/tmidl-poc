@@ -1,6 +1,6 @@
 #include "c_declaration.h"
-#include "mpc_utils.h"
 #include "doc_comment.h"
+#include "mpc_utils.h"
 
 static mpc_val_t *fold_field(int n, mpc_val_t **xs)
 {
@@ -36,8 +36,7 @@ static mpc_val_t *fold_body(int n, mpc_val_t **xs)
 {
     char **declarations = malloc(sizeof(size_t) * n);
 
-    for (int i = 0; i < n; i++)
-    {
+    for (int i = 0; i < n; i++) {
         declarations[i] = xs[i];
     }
 
@@ -85,11 +84,9 @@ static void free_type_specifier(c_type_specifier_struct_t *type_specifier)
 {
     free(type_specifier->name);
 
-    if (type_specifier->declarations != NULL)
-    {
+    if (type_specifier->declarations != NULL) {
         char **declarations = type_specifier->declarations->ptr;
-        for (int i = 0; i < type_specifier->declarations->count; i++)
-        {
+        for (int i = 0; i < type_specifier->declarations->count; i++) {
             free(declarations[i]);
         }
         free(type_specifier->declarations);
@@ -117,8 +114,7 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
     declaration->type_specifier = xs[2];
     declaration->declarator = xs[3];
 
-    if (declaration->doc == NULL)
-    {
+    if (declaration->doc == NULL) {
         char *doc = malloc(1);
         doc[0] = '\0';
         declaration->doc = doc;
