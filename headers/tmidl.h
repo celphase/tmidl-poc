@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+typedef struct tmidl_parser_o tmidl_parser_o;
+
 typedef struct tmidl_function_t
 {
     char *name;
@@ -46,7 +48,14 @@ typedef struct tmidl_callbacks_i
     void (*on_diagnostic)(const tmidl_diagnostic_t *diagnostic, void *user_context);
 } tmidl_callbacks_i;
 
-bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks, void *user_context);
+// Create a TMIDL parser instance.
+tmidl_parser_o *tmidl_parser_create();
+
+// Destroys a TMIDL parser instance.
+void tmidl_parser_destroy(tmidl_parser_o *parser);
+
+// Parse file content.
+bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_callbacks_i *callbacks, void *user_context);
 
 #ifdef __cplusplus
 }

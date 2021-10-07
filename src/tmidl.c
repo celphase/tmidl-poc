@@ -4,6 +4,25 @@
 #include "parser/c_declaration.h"
 #include "parser/mpc_utils.h"
 
+typedef struct tmidl_parser_o
+{
+    mpc_parser_t *api_file_parser;
+} tmidl_parser_o;
+
+tmidl_parser_o *tmidl_parser_create()
+{
+    tmidl_parser_o *parser = malloc(sizeof(tmidl_parser_o));
+    parser->api_file_parser = api_file_parser();
+
+    return parser;
+}
+
+void tmidl_parser_destroy(tmidl_parser_o *parser)
+{
+    mpc_cleanup(1, parser->api_file_parser);
+    free(parser);
+}
+
 static bool validate_declaration(c_declaration_t *declaration,
     const tmidl_callbacks_i *callbacks,
     void *user_context)
@@ -23,14 +42,12 @@ static bool validate_declaration(c_declaration_t *declaration,
     return true;
 }
 
-bool parse_tmidl(const char *input, const tmidl_callbacks_i *callbacks,
+bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
     // Parse the input
-    mpc_parser_t *parser = api_file_parser();
     mpc_result_t r;
-    bool success = mpc_parse("input", input, parser, &r);
-    mpc_cleanup(1, parser);
+    bool success = mpc_parse("input", input, parser->api_file_parser, &r);
 
     if (!success) {
         char *message = mpc_err_string(r.error);

@@ -15,7 +15,15 @@ pub fn parse_tmidl(input: &str) -> (Option<ApiFile>, Vec<Diagnostic>) {
     };
 
     let result = unsafe {
-        tmidl_sys::parse_tmidl(input.as_ptr(), &callbacks, &mut context as *mut _ as *mut _)
+        let parser = tmidl_sys::tmidl_parser_create();
+        let result = tmidl_sys::tmidl_parser_parse(
+            parser,
+            input.as_ptr(),
+            &callbacks,
+            &mut context as *mut _ as *mut _,
+        );
+        tmidl_sys::tmidl_parser_destroy(parser);
+        result
     };
 
     let value = if result { Some(context.api_file) } else { None };

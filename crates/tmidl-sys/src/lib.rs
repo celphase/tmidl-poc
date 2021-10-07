@@ -1,6 +1,11 @@
 use std::{ffi::c_void, os::raw::c_char};
 
 #[repr(C)]
+pub struct ParserO {
+    private: [u8; 0],
+}
+
+#[repr(C)]
 pub struct Declaration {
     pub ty_: DeclarationType,
     pub name: *const c_char,
@@ -44,7 +49,12 @@ pub struct Callbacks {
 }
 
 extern "C" {
-    pub fn parse_tmidl(
+    pub fn tmidl_parser_create() -> *mut ParserO;
+
+    pub fn tmidl_parser_destroy(parser: *mut ParserO);
+
+    pub fn tmidl_parser_parse(
+        parser: *mut ParserO,
         input: *const c_char,
         callbacks: *const Callbacks,
         user_context: *mut c_void,
