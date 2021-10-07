@@ -6,20 +6,26 @@
 
 typedef struct tmidl_parser_o
 {
+    mpc_parser_t *declaration_parser;
     mpc_parser_t *api_file_parser;
 } tmidl_parser_o;
 
 tmidl_parser_o *tmidl_parser_create()
 {
     tmidl_parser_o *parser = malloc(sizeof(tmidl_parser_o));
-    parser->api_file_parser = parse_api_file();
+
+    // This lets us use the declaration parser recursively
+    parser->declaration_parser = mpc_new("declaration");
+    mpc_define(parser->declaration_parser, parse_declaration());
+
+    parser->api_file_parser = parse_api_file(parser->declaration_parser);
 
     return parser;
 }
 
 void tmidl_parser_destroy(tmidl_parser_o *parser)
 {
-    mpc_cleanup(1, parser->api_file_parser);
+    mpc_cleanup(2, parser->api_file_parser, parser->declaration_parser);
     free(parser);
 }
 
@@ -42,7 +48,7 @@ static bool validate_declaration(c_declaration_t *declaration,
     return true;
 }
 
-void handle_declaration_item(c_item_declaration_t *item_declaration, const tmidl_callbacks_i *callbacks,
+static void handle_declaration_item(c_item_declaration_t *item_declaration, const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
     c_declaration_t *c_declaration = item_declaration->declaration;

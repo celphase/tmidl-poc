@@ -22,9 +22,9 @@ mpc_val_t *apply_declaration(mpc_val_t *value)
     return item;
 }
 
-static mpc_parser_t *declaration_item()
+static mpc_parser_t *declaration_item(mpc_parser_t *declaration)
 {
-    return mpc_apply(parse_declaration(), apply_declaration);
+    return mpc_apply(declaration, apply_declaration);
 }
 
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
@@ -70,14 +70,14 @@ void free_items(mpc_val_t *value)
     free(array);
 }
 
-mpc_parser_t *parse_api_file()
+mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
 {
     mpc_parser_t *pragma_once = mpc_and(
         2, mpcf_all_free,
         mpc_string("#pragma once"), any_newline(),
         free);
 
-    mpc_parser_t *c_item = mpc_or(2, include_item(), declaration_item());
+    mpc_parser_t *c_item = mpc_or(2, include_item(), declaration_item(declaration));
     mpc_parser_t *c_items = mpc_many(fold_items, mpc_strip(c_item));
 
     mpc_parser_t *content = mpc_and(

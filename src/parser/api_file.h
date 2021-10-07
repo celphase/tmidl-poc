@@ -21,4 +21,4 @@ typedef struct c_item_declaration_t
 
 void free_items(mpc_val_t *value);
 
-mpc_parser_t *parse_api_file();
+mpc_parser_t *parse_api_file(mpc_parser_t *declaration);
