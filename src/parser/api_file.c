@@ -72,6 +72,8 @@ void free_items(mpc_val_t *value)
 
 mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
 {
+    mpc_parser_t *api_file = mpc_new("api_file");
+
     mpc_parser_t *pragma_once = mpc_and(
         2, mpcf_all_free,
         mpc_string("#pragma once"), any_newline(),
@@ -85,5 +87,7 @@ mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
         pragma_once, c_items,
         free);
 
-    return mpc_whole(content, free_items);
+    mpc_define(api_file, mpc_whole(content, free_items));
+
+    return api_file;
 }

@@ -18,5 +18,5 @@ mpc_parser_t *parse_doc_comment()
         mpc_string("//"), comment_contents, any_newline(),
         free, free);
 
-    return mpc_many1(mpcf_strfold, comment_line);
+    return mpc_many1(mpcf_strfold, mpc_tok(comment_line));
 }

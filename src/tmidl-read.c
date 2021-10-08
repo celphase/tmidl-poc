@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <tmidl.h>
 
-static void on_declaration(const tmidl_declaration_t *declaration, __attribute__((unused)) void *user_context)
+static void on_declaration(const tmidl_declaration_t *declaration, void *user_context)
 {
     printf("# %s\n", declaration->name);
 
@@ -22,7 +22,7 @@ static void on_declaration(const tmidl_declaration_t *declaration, __attribute__
     printf("\n");
 }
 
-static void on_diagnostic(const tmidl_diagnostic_t *diagnostic, __attribute__((unused)) void *user_context)
+static void on_diagnostic(const tmidl_diagnostic_t *diagnostic, void *user_context)
 {
     const char *level = "WARN";
 

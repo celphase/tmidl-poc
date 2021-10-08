@@ -14,10 +14,7 @@ tmidl_parser_o *tmidl_parser_create()
 {
     tmidl_parser_o *parser = malloc(sizeof(tmidl_parser_o));
 
-    // This lets us use the declaration parser recursively
-    parser->declaration_parser = mpc_new("declaration");
-    mpc_define(parser->declaration_parser, parse_declaration());
-
+    parser->declaration_parser = parse_declaration();
     parser->api_file_parser = parse_api_file(parser->declaration_parser);
 
     return parser;
@@ -29,35 +26,34 @@ void tmidl_parser_destroy(tmidl_parser_o *parser)
     free(parser);
 }
 
-static bool validate_declaration(c_declaration_t *declaration,
+static void validate_declaration_struct(
+    c_declaration_t *declaration,
+    c_type_specifier_struct_t *type_specifier,
     const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
-    if (strcmp(declaration->declarator, declaration->type_specifier->name) != 0) {
+    if (strcmp(declaration->declarator, type_specifier->name) != 0) {
         tmidl_diagnostic_t diagnostic;
         diagnostic.level = TMIDL_LEVEL_WARNING;
         diagnostic.message = "The type specifier name must be the same as the declarator.";
 
-        long position = declaration->type_specifier->name_position;
+        long position = type_specifier->name_position;
         diagnostic.position_start = position;
-        diagnostic.position_end = position + (uint32_t)strlen(declaration->type_specifier->name);
+        diagnostic.position_end = position + (uint32_t)strlen(type_specifier->name);
 
         callbacks->on_diagnostic(&diagnostic, user_context);
     }
-
-    return true;
 }
 
-static void handle_declaration_item(c_item_declaration_t *item_declaration, const tmidl_callbacks_i *callbacks,
+static void handle_declaration_struct(
+    c_declaration_t *c_declaration,
+    c_type_specifier_struct_t *type_specifier,
+    const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
-    c_declaration_t *c_declaration = item_declaration->declaration;
+    bool is_interface = type_specifier->declarations != NULL;
 
-    bool is_interface = c_declaration->type_specifier->declarations != NULL;
-
-    if (!validate_declaration(c_declaration, callbacks, user_context)) {
-        return;
-    }
+    validate_declaration_struct(c_declaration, type_specifier, callbacks, user_context);
 
     tmidl_declaration_t declaration;
     declaration.type = is_interface ? TMIDL_ITEM_INTERFACE : TMIDL_ITEM_OPAQUE;
@@ -67,13 +63,13 @@ static void handle_declaration_item(c_item_declaration_t *item_declaration, cons
     declaration.functions_count = 0;
 
     if (is_interface) {
-        declaration.functions_count = c_declaration->type_specifier->declarations->count;
-        char **declarations = c_declaration->type_specifier->declarations->ptr;
+        declaration.functions_count = type_specifier->declarations->count;
+        c_declaration_t **declarations = type_specifier->declarations->ptr;
         declaration.functions = malloc(sizeof(size_t) * declaration.functions_count);
 
         for (int i = 0; i < declaration.functions_count; i++) {
             declaration.functions[i] = malloc(sizeof(tmidl_function_t));
-            declaration.functions[i]->name = declarations[i];
+            declaration.functions[i]->name = declarations[i]->declarator;
         }
     }
 
@@ -88,7 +84,24 @@ static void handle_declaration_item(c_item_declaration_t *item_declaration, cons
     }
 }
 
-bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_callbacks_i *callbacks,
+static void handle_declaration(
+    c_declaration_t *declaration,
+    const tmidl_callbacks_i *callbacks,
+    void *user_context)
+{
+    switch (declaration->type_specifier->type) {
+    case C_TYPE_SPECIFIER_IDENT:
+        break;
+    case C_TYPE_SPECIFIER_STRUCT:
+        handle_declaration_struct(declaration, (c_type_specifier_struct_t *)(declaration->type_specifier), callbacks, user_context);
+        break;
+    }
+}
+
+bool tmidl_parser_parse(
+    tmidl_parser_o *parser,
+    const char *input,
+    const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
     // Parse the input
@@ -117,8 +130,10 @@ bool tmidl_parser_parse(tmidl_parser_o *parser, const char *input, const tmidl_c
     for (int i = 0; i < array->count; i++) {
         c_item_t *item = items[i];
 
-        if (item->type == C_ITEM_TYPE_DECLARATION) {
-            handle_declaration_item((c_item_declaration_t *)item, callbacks, user_context);
+        switch (item->type) {
+        case C_ITEM_TYPE_DECLARATION:
+            handle_declaration(((c_item_declaration_t *)item)->declaration, callbacks, user_context);
+            break;
         }
     }
 
