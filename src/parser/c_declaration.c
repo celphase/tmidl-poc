@@ -46,7 +46,7 @@ static mpc_val_t *fold_type_specifier_struct(int n, mpc_val_t **xs)
     type_specifier->declarations = xs[3];
 
     free(xs[0]);
-    free(xs[1]);
+    free(state);
 
     return type_specifier;
 }
@@ -142,13 +142,17 @@ void free_declaration(c_declaration_t *declaration)
 
 static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
 {
-    mpc_state_t *state = xs[3];
+    mpc_state_t *start_state = xs[0];
+    mpc_state_t *end_state = xs[6];
+
     c_declaration_t *declaration = malloc(sizeof(c_declaration_t));
 
-    declaration->doc = xs[0];
+    declaration->doc = xs[1];
     declaration->storage_class = C_STORAGE_CLASS_NONE;
-    declaration->type_specifier = xs[2];
-    declaration->declarator = xs[3];
+    declaration->type_specifier = xs[3];
+    declaration->declarator = xs[4];
+    declaration->position_start = start_state->pos;
+    declaration->position_end = end_state->pos;
 
     if (declaration->doc == NULL) {
         char *doc = malloc(1);
@@ -156,8 +160,10 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
         declaration->doc = doc;
     }
 
-    free(xs[1]);
-    free(xs[4]);
+    free(start_state);
+    free(xs[2]);
+    free(xs[5]);
+    free(end_state);
 
     return declaration;
 }
@@ -169,16 +175,18 @@ mpc_parser_t *parse_declaration()
 
     // While C allows specifiers in any order, TMIDL enforces an order.
     mpc_parser_t *declaration_def = mpc_and(
-        5, fold_declaration,
+        7, fold_declaration,
+        mpc_state(),
         mpc_maybe(parse_doc_comment()),
         // Storage class specifier
         mpc_maybe(typedef_tok),
         parse_type_specifier(declaration),
         // Declarator
         parse_declarator(),
-        mpc_tok(mpc_char(';')),
-        free, free, free, free);
-    mpc_define(declaration, declaration_def);
+        mpc_char(';'),
+        mpc_state(),
+        free, free, free, free, free, free);
+    mpc_define(declaration, mpc_tok(declaration_def));
 
     return declaration;
 }

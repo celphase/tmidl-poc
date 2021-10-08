@@ -26,6 +26,19 @@ void tmidl_parser_destroy(tmidl_parser_o *parser)
     free(parser);
 }
 
+static tmidl_diagnostic_t diag_warn(
+    char *message,
+    uint32_t position_start,
+    uint32_t position_end)
+{
+    return (tmidl_diagnostic_t) {
+        .level = TMIDL_LEVEL_WARNING,
+        .message = message,
+        .position_start = position_start,
+        .position_end = position_end,
+    };
+}
+
 static void validate_declaration_struct(
     c_declaration_t *declaration,
     c_type_specifier_struct_t *type_specifier,
@@ -33,14 +46,11 @@ static void validate_declaration_struct(
     void *user_context)
 {
     if (strcmp(declaration->declarator, type_specifier->name) != 0) {
-        tmidl_diagnostic_t diagnostic;
-        diagnostic.level = TMIDL_LEVEL_WARNING;
-        diagnostic.message = "The type specifier name must be the same as the declarator.";
-
-        long position = type_specifier->name_position;
-        diagnostic.position_start = position;
-        diagnostic.position_end = position + (uint32_t)strlen(type_specifier->name);
-
+        uint32_t position = type_specifier->name_position;
+        tmidl_diagnostic_t diagnostic = diag_warn(
+            "The type specifier name must be the same as the declarator.",
+            position,
+            position + (uint32_t)strlen(type_specifier->name));
         callbacks->on_diagnostic(&diagnostic, user_context);
     }
 }
@@ -91,6 +101,11 @@ static void handle_declaration(
 {
     switch (declaration->type_specifier->type) {
     case C_TYPE_SPECIFIER_IDENT:
+        tmidl_diagnostic_t diagnostic = diag_warn(
+            "Non-struct declaration not allowed in this position",
+            declaration->position_start,
+            declaration->position_end);
+        callbacks->on_diagnostic(&diagnostic, user_context);
         break;
     case C_TYPE_SPECIFIER_STRUCT:
         handle_declaration_struct(declaration, (c_type_specifier_struct_t *)(declaration->type_specifier), callbacks, user_context);

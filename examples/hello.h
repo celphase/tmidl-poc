@@ -7,10 +7,10 @@ typedef struct hello_o hello_o;
 // Multi-line comments are supported too!
 typedef struct hello_i
 {
-    // Creates an hello instance.
+    // Creates a hello instance.
     hello_o* (*create)();
 
-    // Destroys an hello instance.
+    // Destroys a hello instance.
     void (*destroy)(hello_o *inst);
 } hello_i;
 
