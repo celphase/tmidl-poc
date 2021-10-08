@@ -67,6 +67,7 @@ static mpc_parser_t *parse_type_specifier_struct(mpc_parser_t *declaration)
 static mpc_val_t *apply_type_specifier_ident(mpc_val_t *value)
 {
     c_type_specifier_ident_t *type_specifier = malloc(sizeof(c_type_specifier_ident_t));
+    type_specifier->base.type = C_TYPE_SPECIFIER_IDENT;
     type_specifier->name = value;
 
     return type_specifier;

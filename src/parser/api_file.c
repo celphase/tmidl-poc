@@ -67,6 +67,8 @@ void free_items(mpc_val_t *value)
 
         free(item);
     }
+
+    free(array->ptr);
     free(array);
 }
 
