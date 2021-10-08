@@ -2,6 +2,19 @@
 #include "doc_comment.h"
 #include "mpc_utils.h"
 
+static void free_array_declarations(void *value)
+{
+    util_array_t *array = value;
+    c_declaration_t **declarations = array->ptr;
+
+    for (int i = 0; i < array->count; i++) {
+        free_declaration(declarations[i]);
+    }
+
+    free(array->ptr);
+    free(array);
+}
+
 static mpc_val_t *fold_body(int n, mpc_val_t **xs)
 {
     char **declarations = malloc(sizeof(size_t) * n);
@@ -19,7 +32,7 @@ static mpc_val_t *fold_body(int n, mpc_val_t **xs)
 static mpc_parser_t *parse_body(mpc_parser_t *declaration)
 {
     mpc_parser_t *fields = mpc_many(fold_body, declaration);
-    return mpc_tok_brackets(fields, free);
+    return mpc_tok_brackets(fields, free_array_declarations);
 }
 
 static mpc_val_t *fold_type_specifier_struct(int n, mpc_val_t **xs)
@@ -99,11 +112,7 @@ static void free_type_specifier_struct(c_type_specifier_struct_t *type_specifier
     free(type_specifier->name);
 
     if (type_specifier->declarations != NULL) {
-        c_declaration_t **declarations = type_specifier->declarations->ptr;
-        for (int i = 0; i < type_specifier->declarations->count; i++) {
-            free_declaration(declarations[i]);
-        }
-        free(type_specifier->declarations);
+        free_array_declarations(type_specifier->declarations);
     }
 }
 

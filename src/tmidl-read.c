@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
     for (size_t i = 0; i < size; i++) {
         if (data[i] == 0) {
             printf("File contained null, not allowed.");
+            free(data);
             return 1;
         }
     }
@@ -77,6 +78,7 @@ int main(int argc, char *argv[])
     tmidl_parser_o *parser = tmidl_parser_create();
     bool success = tmidl_parser_parse(parser, data, &callbacks, NULL);
     tmidl_parser_destroy(parser);
+    free(data);
 
     if (!success) {
         printf("Parsing failed!\n");
