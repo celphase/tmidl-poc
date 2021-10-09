@@ -146,13 +146,16 @@ static mpc_val_t *fold_declaration(int n, mpc_val_t **xs)
     mpc_state_t *end_state = xs[6];
 
     c_declaration_t *declaration = malloc(sizeof(c_declaration_t));
-
     declaration->doc = xs[1];
     declaration->storage_class = C_STORAGE_CLASS_NONE;
     declaration->type_specifier = xs[3];
     declaration->declarator = xs[4];
     declaration->position_start = start_state->pos;
     declaration->position_end = end_state->pos;
+
+    if (xs[2] != NULL && strcmp(xs[2], "typedef") == 0) {
+        declaration->storage_class = C_STORAGE_CLASS_TYPEDEF;
+    }
 
     if (declaration->doc == NULL) {
         char *doc = malloc(1);
@@ -181,8 +184,7 @@ mpc_parser_t *parse_declaration()
         // Storage class specifier
         mpc_maybe(typedef_tok),
         parse_type_specifier(declaration),
-        // Declarator
-        parse_declarator(),
+        mpc_maybe(parse_declarator()),
         mpc_char(';'),
         mpc_state(),
         free, free, free, free, free, free);

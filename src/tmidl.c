@@ -45,7 +45,15 @@ static void validate_declaration_struct(
     const tmidl_callbacks_i *callbacks,
     void *user_context)
 {
-    if (strcmp(declaration->declarator, type_specifier->name) != 0) {
+    if (declaration->storage_class != C_STORAGE_CLASS_TYPEDEF) {
+        tmidl_diagnostic_t diagnostic = diag_warn(
+            "Top level structure declaration must have a typedef storage class.",
+            declaration->position_start,
+            declaration->position_end);
+        callbacks->on_diagnostic(&diagnostic, user_context);
+    }
+
+    if (declaration->declarator != NULL && strcmp(declaration->declarator, type_specifier->name) != 0) {
         uint32_t position = type_specifier->name_position;
         tmidl_diagnostic_t diagnostic = diag_warn(
             "The type specifier name must be the same as the declarator.",
@@ -67,7 +75,7 @@ static void handle_declaration_struct(
 
     tmidl_declaration_t declaration;
     declaration.type = is_interface ? TMIDL_ITEM_INTERFACE : TMIDL_ITEM_OPAQUE;
-    declaration.name = c_declaration->declarator;
+    declaration.name = type_specifier->name;
     declaration.doc = c_declaration->doc;
     declaration.functions = NULL;
     declaration.functions_count = 0;
@@ -102,7 +110,7 @@ static void handle_declaration(
     switch (declaration->type_specifier->type) {
     case C_TYPE_SPECIFIER_IDENT:
         tmidl_diagnostic_t diagnostic = diag_warn(
-            "Non-struct declaration not allowed in this position",
+            "Only structure declarations are allowed at the top level.",
             declaration->position_start,
             declaration->position_end);
         callbacks->on_diagnostic(&diagnostic, user_context);
