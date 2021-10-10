@@ -85,7 +85,7 @@ static void handle_declaration_struct(
         c_declaration_t **declarations = type_specifier->declarations->ptr;
         declaration.functions = malloc(sizeof(size_t) * declaration.functions_count);
 
-        for (int i = 0; i < declaration.functions_count; i++) {
+        for (size_t i = 0; i < declaration.functions_count; i++) {
             declaration.functions[i] = malloc(sizeof(tmidl_function_t));
             declaration.functions[i]->name = declarations[i]->declarator;
         }
@@ -95,7 +95,7 @@ static void handle_declaration_struct(
 
     // Clean up
     if (declaration.functions != NULL) {
-        for (int i = 0; i < declaration.functions_count; i++) {
+        for (size_t i = 0; i < declaration.functions_count; i++) {
             free(declaration.functions[i]);
         }
         free(declaration.functions);
@@ -156,6 +156,9 @@ bool tmidl_parser_parse(
         switch (item->type) {
         case C_ITEM_TYPE_DECLARATION:
             handle_declaration(((c_item_declaration_t *)item)->declaration, callbacks, user_context);
+            break;
+        case C_ITEM_TYPE_MODULE_DOC:
+            callbacks->on_module_doc(((c_item_module_doc_t *)item)->doc, user_context);
             break;
         }
     }

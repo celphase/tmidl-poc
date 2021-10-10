@@ -45,6 +45,7 @@ typedef struct tmidl_diagnostic_t
 typedef struct tmidl_callbacks_i
 {
     void (*on_declaration)(const tmidl_declaration_t *declaration, void *user_context);
+    void (*on_module_doc)(const char *doc, void *user_context);
     void (*on_diagnostic)(const tmidl_diagnostic_t *diagnostic, void *user_context);
 } tmidl_callbacks_i;
 

@@ -44,6 +44,7 @@ pub enum Level {
 pub struct Callbacks {
     pub on_declaration:
         unsafe extern "C" fn(declaration: *const Declaration, user_context: *mut c_void),
+    pub on_module_doc: unsafe extern "C" fn(doc: *const c_char, user_context: *mut c_void),
     pub on_diagnostic:
         unsafe extern "C" fn(diagnostic: *const Diagnostic, user_context: *mut c_void),
 }

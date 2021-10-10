@@ -5,12 +5,13 @@ use std::{
 
 use serde::Serialize;
 
-pub fn parse_tmidl(input: &str) -> (Option<ApiFile>, Vec<Diagnostic>) {
+pub fn parse_tmidl(input: &str) -> (Option<Module>, Vec<Diagnostic>) {
     let input = CString::new(input).unwrap();
 
     let mut context = Context::default();
     let callbacks = tmidl_sys::Callbacks {
         on_declaration,
+        on_module_doc,
         on_diagnostic,
     };
 
@@ -26,7 +27,7 @@ pub fn parse_tmidl(input: &str) -> (Option<ApiFile>, Vec<Diagnostic>) {
         result
     };
 
-    let value = if result { Some(context.api_file) } else { None };
+    let value = if result { Some(context.module) } else { None };
 
     (value, context.diagnostics)
 }
@@ -57,7 +58,14 @@ unsafe extern "C" fn on_declaration(
         tmidl_sys::DeclarationType::Interface => Declaration::Interface { meta, functions },
     };
 
-    context.api_file.declarations.push(item);
+    context.module.declarations.push(item);
+}
+
+unsafe extern "C" fn on_module_doc(doc: *const c_char, user_context: *mut c_void) {
+    let context = &mut *(user_context as *mut Context);
+    let doc = CStr::from_ptr(doc);
+
+    context.module.doc.push_str(&doc.to_string_lossy());
 }
 
 unsafe extern "C" fn on_diagnostic(
@@ -80,11 +88,12 @@ unsafe extern "C" fn on_diagnostic(
 #[derive(Default)]
 struct Context {
     diagnostics: Vec<Diagnostic>,
-    api_file: ApiFile,
+    module: Module,
 }
 
 #[derive(Default, Serialize)]
-pub struct ApiFile {
+pub struct Module {
+    doc: String,
     declarations: Vec<Declaration>,
 }
 

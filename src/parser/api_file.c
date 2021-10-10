@@ -27,6 +27,20 @@ static mpc_parser_t *declaration_item(mpc_parser_t *declaration)
     return mpc_apply(declaration, apply_declaration);
 }
 
+static mpc_val_t *apply_module_doc_item(mpc_val_t *value)
+{
+    c_item_module_doc_t *item = malloc(sizeof(c_item_module_doc_t));
+    item->base.type = C_ITEM_TYPE_MODULE_DOC;
+    item->doc = value;
+
+    return item;
+}
+
+static mpc_parser_t *module_doc_item()
+{
+    return mpc_apply(parse_doc_comment(), apply_module_doc_item);
+}
+
 static mpc_val_t *fold_items(int n, mpc_val_t **xs)
 {
     util_array_t *array = malloc(sizeof(util_array_t));
@@ -61,8 +75,13 @@ void free_items(mpc_val_t *value)
     for (int i = 0; i < array->count; i++) {
         c_item_t *item = items[i];
 
-        if (item->type == C_ITEM_TYPE_DECLARATION) {
+        switch (item->type) {
+        case C_ITEM_TYPE_DECLARATION:
             free_declaration(((c_item_declaration_t *)item)->declaration);
+            break;
+        case C_ITEM_TYPE_MODULE_DOC:
+            free(((c_item_module_doc_t *)item)->doc);
+            break;
         }
 
         free(item);
@@ -81,7 +100,12 @@ mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
         mpc_string("#pragma once"), any_newline(),
         free);
 
-    mpc_parser_t *c_item = mpc_or(2, include_item(), declaration_item(declaration));
+    mpc_parser_t *c_item = mpc_or(
+        3,
+        include_item(),
+        declaration_item(declaration),
+        // Intentionally last, as it will otherwise swallow declaration docs
+        module_doc_item());
     mpc_parser_t *c_items = mpc_many(fold_items, mpc_strip(c_item));
 
     mpc_parser_t *content = mpc_and(

@@ -22,6 +22,11 @@ static void on_declaration(const tmidl_declaration_t *declaration, void *user_co
     printf("\n");
 }
 
+static void on_module_doc(const char *doc, void *user_context)
+{
+    printf("Doc: %s\n", doc);
+}
+
 static void on_diagnostic(const tmidl_diagnostic_t *diagnostic, void *user_context)
 {
     const char *level = "WARN";
@@ -73,6 +78,7 @@ int main(int argc, char *argv[])
     // Parse the file
     tmidl_callbacks_i callbacks = {
         .on_declaration = on_declaration,
+        .on_module_doc = on_module_doc,
         .on_diagnostic = on_diagnostic
     };
     tmidl_parser_o *parser = tmidl_parser_create();

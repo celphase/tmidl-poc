@@ -1,5 +1,8 @@
 #pragma once
 
+// This is an example module to demonstrate how to use TMIDL.
+// TMIDL parses more than just the C code, also parsing preprocessor directives and comments.
+
 // An example opaque type.
 typedef struct hello_o hello_o;
 
