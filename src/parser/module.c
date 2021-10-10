@@ -1,8 +1,8 @@
 #include <tmidl.h>
 
-#include "api_file.h"
 #include "c_declaration.h"
 #include "doc_comment.h"
+#include "module.h"
 #include "mpc_utils.h"
 
 static mpc_parser_t *include_item()
@@ -91,9 +91,9 @@ void free_items(mpc_val_t *value)
     free(array);
 }
 
-mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
+mpc_parser_t *parse_module(mpc_parser_t *declaration)
 {
-    mpc_parser_t *api_file = mpc_new("api_file");
+    mpc_parser_t *module = mpc_new("module");
 
     mpc_parser_t *pragma_once = mpc_and(
         2, mpcf_all_free,
@@ -113,7 +113,7 @@ mpc_parser_t *parse_api_file(mpc_parser_t *declaration)
         pragma_once, c_items,
         free);
 
-    mpc_define(api_file, mpc_whole(content, free_items));
+    mpc_define(module, mpc_whole(content, free_items));
 
-    return api_file;
+    return module;
 }

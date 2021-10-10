@@ -28,4 +28,4 @@ typedef struct c_item_module_doc_t
 
 void free_items(mpc_val_t *value);
 
-mpc_parser_t *parse_api_file(mpc_parser_t *declaration);
+mpc_parser_t *parse_module(mpc_parser_t *declaration);

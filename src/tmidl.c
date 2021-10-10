@@ -1,13 +1,13 @@
 #include <tmidl.h>
 
-#include "parser/api_file.h"
 #include "parser/c_declaration.h"
+#include "parser/module.h"
 #include "parser/mpc_utils.h"
 
 typedef struct tmidl_parser_o
 {
     mpc_parser_t *declaration_parser;
-    mpc_parser_t *api_file_parser;
+    mpc_parser_t *module_parser;
 } tmidl_parser_o;
 
 tmidl_parser_o *tmidl_parser_create()
@@ -15,14 +15,14 @@ tmidl_parser_o *tmidl_parser_create()
     tmidl_parser_o *parser = malloc(sizeof(tmidl_parser_o));
 
     parser->declaration_parser = parse_declaration();
-    parser->api_file_parser = parse_api_file(parser->declaration_parser);
+    parser->module_parser = parse_module(parser->declaration_parser);
 
     return parser;
 }
 
 void tmidl_parser_destroy(tmidl_parser_o *parser)
 {
-    mpc_cleanup(2, parser->api_file_parser, parser->declaration_parser);
+    mpc_cleanup(2, parser->module_parser, parser->declaration_parser);
     free(parser);
 }
 
@@ -129,7 +129,7 @@ bool tmidl_parser_parse(
 {
     // Parse the input
     mpc_result_t r;
-    bool success = mpc_parse("input", input, parser->api_file_parser, &r);
+    bool success = mpc_parse("input", input, parser->module_parser, &r);
 
     if (!success) {
         char *message = mpc_err_string(r.error);

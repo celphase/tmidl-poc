@@ -21,12 +21,12 @@ add_library(tmidl STATIC
         headers/tmidl.h
         src/mpc/mpc.c
         src/mpc/mpc.h
-        src/parser/api_file.c
-        src/parser/api_file.h
         src/parser/c_declaration.h
         src/parser/c_declaration.c
         src/parser/doc_comment.c
         src/parser/doc_comment.h
+        src/parser/module.c
+        src/parser/module.h
         src/parser/mpc_utils.h
         src/tmidl.c
         src/types.h)
