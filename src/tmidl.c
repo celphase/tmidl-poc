@@ -26,19 +26,6 @@ void tmidl_parser_destroy(tmidl_parser_o *parser)
     free(parser);
 }
 
-static tmidl_diagnostic_t diag_warn(
-    char *message,
-    uint32_t position_start,
-    uint32_t position_end)
-{
-    return (tmidl_diagnostic_t) {
-        .level = TMIDL_LEVEL_WARNING,
-        .message = message,
-        .position_start = position_start,
-        .position_end = position_end,
-    };
-}
-
 static void validate_declaration_struct(
     c_declaration_t *declaration,
     c_type_specifier_struct_t *type_specifier,
@@ -46,19 +33,23 @@ static void validate_declaration_struct(
     void *user_context)
 {
     if (declaration->storage_class != C_STORAGE_CLASS_TYPEDEF) {
-        tmidl_diagnostic_t diagnostic = diag_warn(
-            "Top level structure declaration must have a typedef storage class.",
-            declaration->position_start,
-            declaration->position_end);
+        tmidl_diagnostic_t diagnostic = {
+            .level = TMIDL_LEVEL_WARNING,
+            .message = "Top level structure declaration must have a typedef storage class.",
+            .position_start = declaration->position_start,
+            .position_end = declaration->position_end,
+        };
         callbacks->on_diagnostic(&diagnostic, user_context);
     }
 
     if (declaration->declarator != NULL && strcmp(declaration->declarator, type_specifier->name) != 0) {
         uint32_t position = type_specifier->name_position;
-        tmidl_diagnostic_t diagnostic = diag_warn(
-            "The type specifier name must be the same as the declarator.",
-            position,
-            position + (uint32_t)strlen(type_specifier->name));
+        tmidl_diagnostic_t diagnostic = {
+            .level = TMIDL_LEVEL_WARNING,
+            .message = "The type specifier name must be the same as the declarator.",
+            .position_start = position,
+            .position_end = position + (uint32_t)strlen(type_specifier->name),
+        };
         callbacks->on_diagnostic(&diagnostic, user_context);
     }
 }
@@ -109,10 +100,12 @@ static void handle_declaration(
 {
     switch (declaration->type_specifier->type) {
     case C_TYPE_SPECIFIER_IDENT:
-        tmidl_diagnostic_t diagnostic = diag_warn(
-            "Only structure declarations are allowed at the top level.",
-            declaration->position_start,
-            declaration->position_end);
+        tmidl_diagnostic_t diagnostic = {
+            .level = TMIDL_LEVEL_WARNING,
+            .message = "Only structure declarations are allowed at the top level.",
+            .position_start = declaration->position_start,
+            .position_end = declaration->position_end,
+        };
         callbacks->on_diagnostic(&diagnostic, user_context);
         break;
     case C_TYPE_SPECIFIER_STRUCT:
